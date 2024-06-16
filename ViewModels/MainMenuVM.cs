@@ -18,19 +18,20 @@ namespace Nauti_Control_Wear.ViewModels
         public MainMenuVM ()
         {
             MenuItems = new List<MenuItemVM>();
-            MenuItems.Add(new MenuItemVM("-1"));
-            MenuItems.Add(new MenuItemVM("+1"));
-            MenuItems.Add(new MenuItemVM("-10"));
-            MenuItems.Add(new MenuItemVM("+10"));
-            MenuItems.Add(new MenuItemVM("Port Tack"));
-            MenuItems.Add(new MenuItemVM("Stb Tack"));
-            MenuItems.Add(new MenuItemVM("Stand By"));
-            MenuItems.Add(new MenuItemVM("Auto"));
-            MenuItems.Add(new MenuItemVM("Track"));
-            MenuItems.Add(new MenuItemVM("Wind Mode"));
-            MenuItems.Add(new MenuItemVM("MOB Alert"));
-            MenuItems.Add(new MenuItemVM("Cancel MOB"));
-            MenuItems.Add(new MenuItemVM("Start Timer"));
+            MenuItems.Add(new MenuItemVM("-1",0));
+            MenuItems.Add(new MenuItemVM("+1",1));
+            MenuItems.Add(new MenuItemVM("-10",3));
+            MenuItems.Add(new MenuItemVM("+10",4));
+            MenuItems.Add(new MenuItemVM("Port Tack",4));
+            MenuItems.Add(new MenuItemVM("Stb Tack",5));
+            MenuItems.Add(new MenuItemVM("Auto", 6));
+            MenuItems.Add(new MenuItemVM("Stand By",7));
+          
+            MenuItems.Add(new MenuItemVM("Track",8));
+            MenuItems.Add(new MenuItemVM("Wind Mode",9));
+            MenuItems.Add(new MenuItemVM("MOB Alert",10));
+            MenuItems.Add(new MenuItemVM("Cancel MOB",11));
+            MenuItems.Add(new MenuItemVM("Start Timer",12));
 
 
 
@@ -38,8 +39,8 @@ namespace Nauti_Control_Wear.ViewModels
 
         public void OnItemClick(object sender, int position)
         {
-            int photoNum = position + 1;
-            //Toast.MakeText(this, "This is photo number " + photoNum, ToastLength.Short).Show();
+           
+          
         }
     }
 }

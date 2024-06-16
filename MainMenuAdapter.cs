@@ -39,7 +39,7 @@ namespace Nauti_Control_Wear
 
        
             
-            // Load the photo caption from the photo album:
+            
             vh.MenuItem.Text = _menuItems[position].MenuText;
         }
 

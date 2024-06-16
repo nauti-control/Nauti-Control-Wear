@@ -15,11 +15,13 @@ namespace Nauti_Control_Wear.ViewModels
     {
         public string MenuText { get; set; }
 
+        public int Command { get; set; }
 
-        public MenuItemVM(string menuText)
+
+        public MenuItemVM(string menuText, int command)
         {
             MenuText = menuText;
-
+            Command = command;  
         }
     }
 }
