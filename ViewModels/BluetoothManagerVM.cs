@@ -12,9 +12,7 @@ namespace Nauti_Control_Wear.ViewModels
         private BluetoothAdapter _bluetoothAdapter;
         private BluetoothLeScanner _bluetoothLeScanner;
 
-        public bool _deviceFound = false;
-
-        public BluetoothDeviceVM BluetoothDeviceVM { get; set; }
+        
 
         public void StartScanning()
         {
@@ -39,26 +37,10 @@ namespace Nauti_Control_Wear.ViewModels
         public override void OnScanResult([GeneratedEnum] ScanCallbackType callbackType, ScanResult result)
         {
             base.OnScanResult(callbackType, result);
-            if (result != null && result.Device != null && result.Device.Name != null && !_deviceFound)
+            if (result != null && result.Device != null && result.Device.Name != null)
             {
                 Debug.WriteLine("Bluetooth Device Found=" + result.Device?.Name?.ToString());
-                if (result.Device.Name == "NAUTI-CONTROL-REMOTE")
-                {
-                    _deviceFound = true;
-                    StopScanning();
-                   
-                    if (ConnectToDevice(result.Device))
-                    {
-                        Debug.WriteLine("Connected To Nauti Box");
-
-                    } else
-                    {
-                        // Start Scanning again if didnt connect
-                        _deviceFound = false;
-                        StartScanning();
-
-                    }
-                }
+            
             }
         }
 
@@ -73,9 +55,7 @@ namespace Nauti_Control_Wear.ViewModels
             bool result = false;
             try
             {
-                BluetoothDeviceVM = new BluetoothDeviceVM(device);
-                BluetoothDeviceVM.Connect();
-                BluetoothDeviceVM.OnDeviceDisonnected += BluetoothDeviceVM_OnDeviceDisonnected;
+              
                 result = true;
 
             }
@@ -95,10 +75,8 @@ namespace Nauti_Control_Wear.ViewModels
         private void BluetoothDeviceVM_OnDeviceDisonnected(object sender, EventArgs e)
         {
 
-            _deviceFound = false;
-            BluetoothDeviceVM.OnDeviceDisonnected -= BluetoothDeviceVM_OnDeviceDisonnected;
-            BluetoothDeviceVM = null;
-            StartScanning();
+          
+           
         }
     }
 }

@@ -20,8 +20,8 @@ namespace Nauti_Control_Wear.ViewModels
             MenuItems = new List<MenuItemVM>();
             MenuItems.Add(new MenuItemVM("-1",0));
             MenuItems.Add(new MenuItemVM("+1",1));
-            MenuItems.Add(new MenuItemVM("-10",3));
-            MenuItems.Add(new MenuItemVM("+10",4));
+            MenuItems.Add(new MenuItemVM("-10",2));
+            MenuItems.Add(new MenuItemVM("+10",3));
             MenuItems.Add(new MenuItemVM("Port Tack",4));
             MenuItems.Add(new MenuItemVM("Stb Tack",5));
             MenuItems.Add(new MenuItemVM("Auto", 6));
@@ -39,8 +39,9 @@ namespace Nauti_Control_Wear.ViewModels
 
         public void OnItemClick(object sender, int position)
         {
-           
-          
+
+            // 
+            string test = position.ToString();
         }
     }
 }

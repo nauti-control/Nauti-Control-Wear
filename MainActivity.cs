@@ -8,7 +8,7 @@ using Nauti_Control_Wear.ViewModels;
 
 namespace Nauti_Control_Wear
 {
-    [Activity(Label = "@string/app_name", MainLauncher = true)]
+    [Activity(Label = "@string/app_name")]
     public class MainActivity : Activity
     {
         MainActivityVM? _vm;
@@ -19,55 +19,9 @@ namespace Nauti_Control_Wear
             SetContentView(Resource.Layout.main_menu);
             SetupVM();
      
-            if (CheckPermissions())
-            {
-                DisplayPermissionsDialog();
-            }
-            else if (_vm != null) 
-            {
-                _vm.BluetoothManagerVM.StartScanning();
-            }
-        }
-
-        private bool CheckPermissions()
-        {
-            return (ContextCompat.CheckSelfPermission(this, Manifest.Permission.AccessFineLocation) != Permission.Granted);
-
         }
 
 
-        private void DisplayPermissionsDialog()
-        {
-
-            AlertDialog.Builder alertDiag = new AlertDialog.Builder(this);
-            alertDiag.SetTitle("Permission");
-            alertDiag.SetMessage("App requires bluetooth");
-            alertDiag.SetPositiveButton("Ok", RequestPermissions);
-            alertDiag.SetNegativeButton("Cancel", (senderAlert, args) => {
-                alertDiag.Dispose();
-            });
-            Dialog diag = alertDiag.Create();
-            diag.Show();
-
-
-        }
-
-        private void RequestPermissions(object senderAlert, DialogClickEventArgs args)
-        {
-            ActivityCompat.RequestPermissions(this, new string[] { Manifest.Permission.AccessFineLocation }, 1);
-        }
-
-        public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)
-        {
-            if ((requestCode == 1) && (grantResults.Length > 0) && (grantResults[0] == Permission.Granted))
-            {
-                _vm.BluetoothManagerVM.StartScanning();
-            }
-            else
-            {
-                base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
-            }
-        }
 
         /// <summary>
         /// Setup ViewModel 
@@ -77,7 +31,7 @@ namespace Nauti_Control_Wear
             _vm = new MainActivityVM();
 
 
-            WearableRecyclerView recyclerView = FindViewById<WearableRecyclerView>(Resource.Id.main_menu);
+            WearableRecyclerView? recyclerView = FindViewById<WearableRecyclerView>(Resource.Id.main_menu);
             if (recyclerView != null)
             {
                 recyclerView.EdgeItemsCenteringEnabled = true;
