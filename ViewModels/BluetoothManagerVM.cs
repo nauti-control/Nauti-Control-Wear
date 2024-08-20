@@ -3,26 +3,43 @@ using Android.Bluetooth.LE;
 using Android.Content;
 using Android.Runtime;
 using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 
 namespace Nauti_Control_Wear.ViewModels
 {
     public class BluetoothManagerVM : ScanCallback
     {
-        private BluetoothAdapter _bluetoothAdapter;
-        private BluetoothLeScanner _bluetoothLeScanner;
+        private BluetoothAdapter? _bluetoothAdapter;
 
-        
+        private BluetoothLeScanner? _bluetoothLeScanner;
+
+        private ObservableCollection<BluetoothDeviceVM> _bluetoothDeviceVMs = new ObservableCollection<BluetoothDeviceVM>();
+
+        public ObservableCollection<BluetoothDeviceVM> BluetoothDevices
+        {
+            get
+            {
+                return _bluetoothDeviceVMs;
+            }
+        }
+
+
 
         public void StartScanning()
         {
-            BluetoothManager bluetoothManager = (BluetoothManager)Android.App.Application.Context.GetSystemService(Context.BluetoothService);
-            _bluetoothAdapter = bluetoothManager.Adapter;
-            if (_bluetoothAdapter != null)
+            BluetoothManager? bluetoothManager = Android.App.Application.Context.GetSystemService(Context.BluetoothService) as BluetoothManager;
+            if (bluetoothManager != null)
             {
-                _bluetoothLeScanner = _bluetoothAdapter.BluetoothLeScanner;
-
-                _bluetoothLeScanner.StartScan(this);
+                _bluetoothAdapter = bluetoothManager.Adapter;
+                if (_bluetoothAdapter != null)
+                {
+                    _bluetoothLeScanner = _bluetoothAdapter.BluetoothLeScanner;
+                    if (_bluetoothLeScanner != null)
+                    {
+                        _bluetoothLeScanner.StartScan(this);
+                    }
+                }
             }
         }
 
@@ -34,13 +51,14 @@ namespace Nauti_Control_Wear.ViewModels
                 _bluetoothLeScanner.StopScan(this);
             }
         }
-        public override void OnScanResult([GeneratedEnum] ScanCallbackType callbackType, ScanResult result)
+        public override void OnScanResult([GeneratedEnum] ScanCallbackType callbackType, ScanResult? result)
         {
             base.OnScanResult(callbackType, result);
             if (result != null && result.Device != null && result.Device.Name != null)
             {
                 Debug.WriteLine("Bluetooth Device Found=" + result.Device?.Name?.ToString());
-            
+                BluetoothDeviceVM bluetoothDeviceVM = new BluetoothDeviceVM(result.Device);
+
             }
         }
 
@@ -55,7 +73,7 @@ namespace Nauti_Control_Wear.ViewModels
             bool result = false;
             try
             {
-              
+
                 result = true;
 
             }
@@ -67,16 +85,6 @@ namespace Nauti_Control_Wear.ViewModels
             return result;
         }
 
-        /// <summary>
-        /// Start looking for a device if we are disconnected.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void BluetoothDeviceVM_OnDeviceDisonnected(object sender, EventArgs e)
-        {
 
-          
-           
-        }
     }
 }

@@ -4,6 +4,7 @@ using Android.Content.PM;
 using AndroidX.Core.App;
 using AndroidX.Core.Content;
 using AndroidX.Wear.Widget;
+using Nauti_Control_Wear.Adapters;
 using Nauti_Control_Wear.ViewModels;
 
 namespace Nauti_Control_Wear

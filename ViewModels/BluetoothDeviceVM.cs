@@ -11,8 +11,16 @@ namespace Nauti_Control_Wear.ViewModels
     public class BluetoothDeviceVM : BluetoothGattCallback
     {
         public bool Connected { get; set; }
-        private BluetoothGattCharacteristic _characteristic;
-        private BluetoothGatt _gatt;
+
+        public string? Name
+        {
+            get
+            {
+                return _device.Name;
+            }
+        }
+        private BluetoothGattCharacteristic? _characteristic;
+        private BluetoothGatt? _gatt;
         private BluetoothDevice _device;
 
         public event EventHandler OnDeviceDisonnected;
@@ -25,7 +33,10 @@ namespace Nauti_Control_Wear.ViewModels
 
         public void Connect()
         {
-            _gatt = _device.ConnectGatt(null, false, this);
+            if (_device != null)
+            {
+                _gatt = _device.ConnectGatt(null, false, this);
+            }
 
         }
 
@@ -40,7 +51,7 @@ namespace Nauti_Control_Wear.ViewModels
 
         public void SendCommand(int command)
         {
-           
+
             _characteristic.SetValue(command.ToString());
             _gatt.WriteCharacteristic(_characteristic);
         }
@@ -67,7 +78,7 @@ namespace Nauti_Control_Wear.ViewModels
 
                 // Find the characteristic you want to write to
                 BluetoothGattService gattService = gatt.GetService(UUID.FromString("3fbc5eb7-ca52-42fe-a43c-5f980e555436"));
-             
+
                 if (gattService != null)
                 {
                     _characteristic = gattService.GetCharacteristic(UUID.FromString("46ba71f1-c22c-42ae-832c-81414bde99ee"));

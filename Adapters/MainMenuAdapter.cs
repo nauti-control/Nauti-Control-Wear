@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Nauti_Control_Wear
+namespace Nauti_Control_Wear.Adapters
 {
     public class MainMenuAdapter : RecyclerView.Adapter
     {
@@ -31,15 +31,15 @@ namespace Nauti_Control_Wear
                 return _menuItems.Count;
             }
         }
-        
+
 
         public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
         {
             MainMenuViewHolder vh = holder as MainMenuViewHolder;
 
-       
-            
-            
+
+
+
             vh.MenuItem.Text = _menuItems[position].MenuText;
         }
 
@@ -47,7 +47,7 @@ namespace Nauti_Control_Wear
         {
             // Inflate the CardView for the photo:
             View itemView = LayoutInflater.From(parent.Context).
-                        Inflate(Resource.Layout.main_menu_item, parent, false);
+                        Inflate(_Microsoft.Android.Resource.Designer.ResourceConstant.Layout.main_menu_item, parent, false);
 
             // Create a ViewHolder to hold view references inside the CardView:
             MainMenuViewHolder vh = new MainMenuViewHolder(itemView);
