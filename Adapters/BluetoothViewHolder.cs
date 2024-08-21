@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Nauti_Control_Wear.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,9 +11,18 @@ namespace Nauti_Control_Wear.Adapters
     {
         public TextView? Name { get; set; }
 
+        public BluetoothDeviceVM? Device { get; set; }
+
         public BluetoothViewHolder (TextView nameTextView)
         {
             Name = nameTextView;
+        }
+
+        public void SetDevice (BluetoothDeviceVM device)
+        {
+            Device = device;
+            Name.Text = device.Name;
+
         }
     }
 }

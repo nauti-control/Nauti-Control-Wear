@@ -19,6 +19,13 @@ namespace Nauti_Control_Wear.ViewModels
                 return _device.Name;
             }
         }
+
+        ///
+        public string? Address
+        {
+            get { return _device.Address; }
+        }
+
         private BluetoothGattCharacteristic? _characteristic;
         private BluetoothGatt? _gatt;
         private BluetoothDevice _device;

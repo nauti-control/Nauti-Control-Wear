@@ -25,15 +25,11 @@ public class BluetoothScanActivity : Activity
     /// <param name="savedInstanceState"></param>
     protected override void OnCreate(Bundle? savedInstanceState)
     {
-
-
-
         base.OnCreate(savedInstanceState);
 
         SetContentView(Resource.Layout.bluetooth_scan);
 
         _bluetoothManager = new BluetoothManagerVM();
-
 
         ListView? mainList = FindViewById<ListView>(Resource.Id.idbtdevice);
         _scanButton = FindViewById<Button>(Resource.Id.idbtstartscan);
@@ -42,16 +38,35 @@ public class BluetoothScanActivity : Activity
             _scanButton.Click += ScanButton_Click;
         }
 
-        ListView? deviceView = FindViewById<ListView>(Resource.Id.main_menu);
-        if (deviceView != null)
+
+        if (mainList != null)
         {
 
             _btAdapter = new BluetoothListAdapter(_bluetoothManager);
 
-            deviceView.Adapter = _btAdapter;
+            mainList.Adapter = _btAdapter;
+
+            mainList.ItemClick += MainList_ItemClick;
 
         }
 
+    }
+
+    /// <summary>
+    /// Main List Item Click
+    /// </summary>
+    /// <param name="sender">Sender</param>
+    /// <param name="e">event</param>
+    private void MainList_ItemClick(object? sender, AdapterView.ItemClickEventArgs e)
+    {
+        if (e.View != null && e.View.Tag != null)
+        {
+            BluetoothViewHolder? view = e.View.Tag as BluetoothViewHolder;
+
+            Intent intent = new Intent(this, typeof(MainActivity));
+            this.StartActivity(intent);
+
+        }
     }
 
     /// <summary>
@@ -66,7 +81,12 @@ public class BluetoothScanActivity : Activity
         {
             if (_bluetoothManager != null)
             {
+
                 _bluetoothManager.StartScanning();
+                if (_scanButton != null)
+                {
+                    _scanButton.Enabled = false;
+                }
             }
 
         }
@@ -131,7 +151,12 @@ public class BluetoothScanActivity : Activity
         {
             if (_bluetoothManager != null)
             {
+
                 _bluetoothManager.StartScanning();
+                if (_scanButton != null)
+                {
+                    _scanButton.Enabled = false;
+                }
             }
         }
         else

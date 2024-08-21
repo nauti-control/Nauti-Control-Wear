@@ -51,13 +51,24 @@ namespace Nauti_Control_Wear.ViewModels
                 _bluetoothLeScanner.StopScan(this);
             }
         }
+
+        /// <summary>
+        /// On Scan Result
+        /// </summary>
+        /// <param name="callbackType">Call back</param>
+        /// <param name="result">Result</param>
         public override void OnScanResult([GeneratedEnum] ScanCallbackType callbackType, ScanResult? result)
         {
             base.OnScanResult(callbackType, result);
             if (result != null && result.Device != null && result.Device.Name != null)
             {
-                Debug.WriteLine("Bluetooth Device Found=" + result.Device?.Name?.ToString());
-                BluetoothDeviceVM bluetoothDeviceVM = new BluetoothDeviceVM(result.Device);
+                if (!BluetoothDevices.Select(m => m.Address==result.Device.Address).Any())
+                {
+                    Debug.WriteLine("Bluetooth Device Found=" + result.Device?.Name?.ToString());
+
+                    BluetoothDeviceVM bluetoothDeviceVM = new BluetoothDeviceVM(result.Device);
+                    BluetoothDevices.Add(bluetoothDeviceVM);
+                }
 
             }
         }
