@@ -1,15 +1,9 @@
-﻿using Android.App;
-using Android.Content;
-using Android.OS;
-using Android.Runtime;
+﻿
 using Android.Views;
-using Android.Widget;
+
 using AndroidX.RecyclerView.Widget;
 using Nauti_Control_Wear.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+
 
 namespace Nauti_Control_Wear.Adapters
 {
@@ -18,7 +12,7 @@ namespace Nauti_Control_Wear.Adapters
 
         List<MenuItemVM> _menuItems;
 
-        public event EventHandler<int> ItemClick;
+        public event EventHandler<MenuItemVM> ItemClick;
 
         public MainMenuAdapter(MainMenuVM mainMenuVM)
         {
@@ -32,25 +26,29 @@ namespace Nauti_Control_Wear.Adapters
             }
         }
 
+        private void OnClick(int position)
+        {
+            if (ItemClick != null)
+                ItemClick(this, _menuItems[position]);
+        }
+
 
         public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
         {
             MainMenuViewHolder vh = holder as MainMenuViewHolder;
 
+            vh.MenuItemVM = _menuItems[position];
 
-
-
-            vh.MenuItem.Text = _menuItems[position].MenuText;
         }
 
         public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
         {
+
             // Inflate the CardView for the photo:
-            View itemView = LayoutInflater.From(parent.Context).
-                        Inflate(_Microsoft.Android.Resource.Designer.ResourceConstant.Layout.main_menu_item, parent, false);
+            View? itemView = LayoutInflater.From(parent.Context).Inflate(_Microsoft.Android.Resource.Designer.ResourceConstant.Layout.main_menu_item, parent, false);
 
             // Create a ViewHolder to hold view references inside the CardView:
-            MainMenuViewHolder vh = new MainMenuViewHolder(itemView);
+            MainMenuViewHolder vh = new MainMenuViewHolder(itemView, OnClick);
             return vh;
         }
     }

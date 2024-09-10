@@ -1,7 +1,9 @@
 using Android.Bluetooth;
 using Android.Bluetooth.LE;
 using Android.Content;
+using Android.OS;
 using Android.Runtime;
+using Java.Util;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -24,7 +26,7 @@ namespace Nauti_Control_Wear.ViewModels
             }
         }
 
-
+        public bool IsScanning { get; internal set; }
 
         public void StartScanning()
         {
@@ -35,9 +37,20 @@ namespace Nauti_Control_Wear.ViewModels
                 if (_bluetoothAdapter != null)
                 {
                     _bluetoothLeScanner = _bluetoothAdapter.BluetoothLeScanner;
+
                     if (_bluetoothLeScanner != null)
                     {
-                        _bluetoothLeScanner.StartScan(this);
+
+                        List<ScanFilter> filters = new List<ScanFilter>();
+                        ScanSettings settings = new ScanSettings.Builder()
+                                                       .SetScanMode(Android.Bluetooth.LE.ScanMode.Balanced)
+                                                       .Build();
+                        // ScanFilter? filter = new ScanFilter.Builder().SetServiceUuid(ParcelUuid.FromString("778e5a27-1cc1-4bca-994f-7b2dbe34fcc6")).Build();
+                        //filters.Add(filter);
+                        _bluetoothLeScanner.StartScan(filters, settings, this);
+
+                        IsScanning = true;
+
                     }
                 }
             }
@@ -49,8 +62,11 @@ namespace Nauti_Control_Wear.ViewModels
             {
 
                 _bluetoothLeScanner.StopScan(this);
+                IsScanning = false;
             }
         }
+
+
 
         /// <summary>
         /// On Scan Result
@@ -60,11 +76,12 @@ namespace Nauti_Control_Wear.ViewModels
         public override void OnScanResult([GeneratedEnum] ScanCallbackType callbackType, ScanResult? result)
         {
             base.OnScanResult(callbackType, result);
+
             if (result != null && result.Device != null && result.Device.Name != null)
             {
-                if (!BluetoothDevices.Select(m => m.Address==result.Device.Address).Any())
+                if (!BluetoothDevices.Select(m => m.Address == result.Device.Address).Any())
                 {
-                    Debug.WriteLine("Bluetooth Device Found=" + result.Device?.Name?.ToString());
+                    System.Diagnostics.Debug.WriteLine("Bluetooth Device Found=" + result.Device?.Name?.ToString());
 
                     BluetoothDeviceVM bluetoothDeviceVM = new BluetoothDeviceVM(result.Device);
                     BluetoothDevices.Add(bluetoothDeviceVM);
@@ -72,30 +89,6 @@ namespace Nauti_Control_Wear.ViewModels
 
             }
         }
-
-
-        /// <summary>
-        /// Connect To Device And Set Connected
-        /// </summary>
-        /// <param name="device"></param>
-        /// <returns></returns>
-        private bool ConnectToDevice(BluetoothDevice device)
-        {
-            bool result = false;
-            try
-            {
-
-                result = true;
-
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex.ToString());
-                // Handle connection or writing errors
-            }
-            return result;
-        }
-
 
     }
 }

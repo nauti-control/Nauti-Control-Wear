@@ -62,10 +62,24 @@ public class BluetoothScanActivity : Activity
         if (e.View != null && e.View.Tag != null)
         {
             BluetoothViewHolder? view = e.View.Tag as BluetoothViewHolder;
+            if (view != null)
+            {
+                view.Device.OnConnected += Device_OnConnected;
+                view.Device.Connect();
+       
+            }
 
+        }
+    }
+
+    private void Device_OnConnected(object? sender, EventArgs e)
+    {
+        BluetoothDeviceVM? deviceVM= sender as BluetoothDeviceVM;
+        if (deviceVM != null)
+        {
             Intent intent = new Intent(this, typeof(MainActivity));
+           
             this.StartActivity(intent);
-
         }
     }
 
@@ -76,23 +90,38 @@ public class BluetoothScanActivity : Activity
     /// <param name="e">Event</param>
     private void ScanButton_Click(object? sender, EventArgs e)
     {
-
-        if (CheckPermissions())
+        if (_bluetoothManager != null)
         {
-            if (_bluetoothManager != null)
+            if (!_bluetoothManager.IsScanning)
             {
-
-                _bluetoothManager.StartScanning();
-                if (_scanButton != null)
+                if (CheckPermissions())
                 {
-                    _scanButton.Enabled = false;
+                    if (_bluetoothManager != null)
+                    {
+
+                        _bluetoothManager.StartScanning();
+                        if (_scanButton != null)
+                        {
+                           
+                            _scanButton.Text = "Stop Scan";
+                        }
+                    }
+
+                }
+                else
+                {
+                    DisplayPermissionsDialog();
                 }
             }
+            else
+            {
+                _bluetoothManager.StopScanning();
+                if (_scanButton != null)
+                {
 
-        }
-        else
-        {
-            DisplayPermissionsDialog();
+                    _scanButton.Text = "Start Scan";
+                }
+            }
         }
 
     }

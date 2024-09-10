@@ -18,15 +18,14 @@ namespace Nauti_Control_Wear.ViewModels
         public MainMenuVM ()
         {
             MenuItems = new List<MenuItemVM>();
-            MenuItems.Add(new MenuItemVM("-1",0));
-            MenuItems.Add(new MenuItemVM("+1",1));
-            MenuItems.Add(new MenuItemVM("-10",2));
-            MenuItems.Add(new MenuItemVM("+10",3));
+            MenuItems.Add(new MenuItemVM("Minus 1",0));
+            MenuItems.Add(new MenuItemVM("Plus 1",1));
+            MenuItems.Add(new MenuItemVM("Minus 10",2));
+            MenuItems.Add(new MenuItemVM("Plus 10",3));
             MenuItems.Add(new MenuItemVM("Port Tack",4));
             MenuItems.Add(new MenuItemVM("Stb Tack",5));
             MenuItems.Add(new MenuItemVM("Auto", 6));
-            MenuItems.Add(new MenuItemVM("Stand By",7));
-          
+            MenuItems.Add(new MenuItemVM("Stand By",7));        
             MenuItems.Add(new MenuItemVM("Track",8));
             MenuItems.Add(new MenuItemVM("Wind Mode",9));
             MenuItems.Add(new MenuItemVM("MOB Alert",10));
@@ -37,11 +36,14 @@ namespace Nauti_Control_Wear.ViewModels
 
         }
 
-        public void OnItemClick(object sender, int position)
+        public void OnItemClick(object sender, MenuItemVM item)
         {
+            if (BluetoothDeviceVM.ConnectedInstance != null)
+            {
+                BluetoothDeviceVM.ConnectedInstance.SendCommand(item.Command);
+            }
 
-            // 
-            string test = position.ToString();
+            Console.WriteLine(item.MenuText);
         }
     }
 }

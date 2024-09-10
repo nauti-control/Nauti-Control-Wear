@@ -92,7 +92,7 @@ namespace Nauti_Control_Wear.Adapters
 
                 if (holder != null && holder.Name != null)
                 {
-                    holder.Name.Text = _bluetoothManager.BluetoothDevices[position].Name;
+                    holder.SetDevice(_bluetoothManager.BluetoothDevices[position]);
                 }
             }
 
