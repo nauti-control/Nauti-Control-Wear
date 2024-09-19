@@ -9,15 +9,15 @@ using Nauti_Control_Wear.ViewModels;
 
 namespace Nauti_Control_Wear
 {
-    [Activity(Label = "@string/app_name")]
-    public class MainActivity : Activity
+    [Activity(Label = "@string/command_activity")]
+    public class CommandActivity : Activity
     {
-        MainActivityVM? _vm;
-        MainMenuAdapter? _mainMenuAdapter;
+        CommandActivityVM? _vm;
+        CommandAdapter? _mainMenuAdapter;
         protected override void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
-            SetContentView(Resource.Layout.main_menu);
+            SetContentView(Resource.Layout.command_menu);
             SetupVM();
      
         }
@@ -29,15 +29,15 @@ namespace Nauti_Control_Wear
         /// </summary>
         private void SetupVM()
         {
-            _vm = new MainActivityVM();
+            _vm = new CommandActivityVM();
 
 
-            WearableRecyclerView? recyclerView = FindViewById<WearableRecyclerView>(Resource.Id.main_menu);
+            WearableRecyclerView? recyclerView = FindViewById<WearableRecyclerView>(Resource.Id.command_menu);
             if (recyclerView != null)
             {
                 recyclerView.EdgeItemsCenteringEnabled = true;
-                _mainMenuAdapter = new MainMenuAdapter(_vm.MainMenuVM);
-                _mainMenuAdapter.ItemClick += _vm.MainMenuVM.OnItemClick;
+                _mainMenuAdapter = new CommandAdapter(_vm.CommandMenuVM);
+                _mainMenuAdapter.ItemClick += _vm.CommandMenuVM.OnItemClick;
                 recyclerView.SetAdapter(_mainMenuAdapter);
                 recyclerView.SetLayoutManager(new WearableLinearLayoutManager(this));
             }

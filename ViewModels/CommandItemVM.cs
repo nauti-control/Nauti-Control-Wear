@@ -11,14 +11,14 @@ using System.Text;
 
 namespace Nauti_Control_Wear.ViewModels
 {
-    public  class MenuItemVM
+    public  class CommandItemVM
     {
         public string MenuText { get; set; }
 
         public int Command { get; set; }
 
 
-        public MenuItemVM(string menuText, int command)
+        public CommandItemVM(string menuText, int command)
         {
             MenuText = menuText;
             Command = command;  

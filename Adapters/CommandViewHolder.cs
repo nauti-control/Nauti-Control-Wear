@@ -4,12 +4,12 @@ using Nauti_Control_Wear.ViewModels;
 
 namespace Nauti_Control_Wear.Adapters
 {
-    public class MainMenuViewHolder : RecyclerView.ViewHolder
+    public class CommandViewHolder : RecyclerView.ViewHolder
     {
         public TextView MenuItem { get; private set; }
 
-        private MenuItemVM _menuItemVM;
-        public MenuItemVM MenuItemVM
+        private CommandItemVM _menuItemVM;
+        public CommandItemVM MenuItemVM
         {
             get
             {
@@ -24,7 +24,7 @@ namespace Nauti_Control_Wear.Adapters
         }
 
 
-        public MainMenuViewHolder(View itemView,Action<int> listener) : base(itemView)
+        public CommandViewHolder(View itemView,Action<int> listener) : base(itemView)
         {
 
 

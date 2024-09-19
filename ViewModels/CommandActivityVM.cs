@@ -4,14 +4,14 @@ using System.Collections.Generic;
 
 namespace Nauti_Control_Wear.ViewModels
 {
-    public class MainActivityVM
+    public class CommandActivityVM
     {
-        public MainMenuVM? MainMenuVM { get; private set; }  
+        public CommandMenuVM? CommandMenuVM { get; private set; }  
         public  BluetoothManagerVM BluetoothManagerVM { get; private set; }
-        public MainActivityVM()
+        public CommandActivityVM()
         {
             BluetoothManagerVM=new BluetoothManagerVM();
-            MainMenuVM= new MainMenuVM();
+            CommandMenuVM= new CommandMenuVM();
          
 
 

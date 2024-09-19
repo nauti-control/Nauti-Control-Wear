@@ -11,7 +11,7 @@ using Nauti_Control_Wear.ViewModels;
 
 namespace Nauti_Control_Wear;
 
-[Activity(Label = "BluetoothScanActivity", MainLauncher = true)]
+[Activity(Label = "@string/bluetooth_activity", MainLauncher = true)]
 public class BluetoothScanActivity : Activity
 {
     private static int REQUEST_ENABLE_BT = 1;
@@ -77,7 +77,7 @@ public class BluetoothScanActivity : Activity
         BluetoothDeviceVM? deviceVM= sender as BluetoothDeviceVM;
         if (deviceVM != null)
         {
-            Intent intent = new Intent(this, typeof(MainActivity));
+            Intent intent = new Intent(this, typeof(CommandActivity));
            
             this.StartActivity(intent);
         }

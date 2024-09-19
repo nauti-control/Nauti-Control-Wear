@@ -7,37 +7,37 @@ using Nauti_Control_Wear.ViewModels;
 
 namespace Nauti_Control_Wear.Adapters
 {
-    public class MainMenuAdapter : RecyclerView.Adapter
+    public class CommandAdapter : RecyclerView.Adapter
     {
 
-        List<MenuItemVM> _menuItems;
+        List<CommandItemVM> _commandItems;
 
-        public event EventHandler<MenuItemVM> ItemClick;
+        public event EventHandler<CommandItemVM> ItemClick;
 
-        public MainMenuAdapter(MainMenuVM mainMenuVM)
+        public CommandAdapter(CommandMenuVM commandMenuVM)
         {
-            _menuItems = mainMenuVM.MenuItems;
+            _commandItems = commandMenuVM.MenuItems;
         }
         public override int ItemCount
         {
             get
             {
-                return _menuItems.Count;
+                return _commandItems.Count;
             }
         }
 
         private void OnClick(int position)
         {
             if (ItemClick != null)
-                ItemClick(this, _menuItems[position]);
+                ItemClick(this, _commandItems[position]);
         }
 
 
         public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
         {
-            MainMenuViewHolder vh = holder as MainMenuViewHolder;
+            CommandViewHolder vh = holder as CommandViewHolder;
 
-            vh.MenuItemVM = _menuItems[position];
+            vh.MenuItemVM = _commandItems[position];
 
         }
 
@@ -45,10 +45,10 @@ namespace Nauti_Control_Wear.Adapters
         {
 
             // Inflate the CardView for the photo:
-            View? itemView = LayoutInflater.From(parent.Context).Inflate(_Microsoft.Android.Resource.Designer.ResourceConstant.Layout.main_menu_item, parent, false);
+            View? itemView = LayoutInflater.From(parent.Context).Inflate(_Microsoft.Android.Resource.Designer.ResourceConstant.Layout.command_item, parent, false);
 
             // Create a ViewHolder to hold view references inside the CardView:
-            MainMenuViewHolder vh = new MainMenuViewHolder(itemView, OnClick);
+            CommandViewHolder vh = new CommandViewHolder(itemView, OnClick);
             return vh;
         }
     }
