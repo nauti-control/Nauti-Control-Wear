@@ -77,7 +77,7 @@ public class BluetoothScanActivity : Activity
         BluetoothDeviceVM? deviceVM= sender as BluetoothDeviceVM;
         if (deviceVM != null)
         {
-            Intent intent = new Intent(this, typeof(CommandActivity));
+            Intent intent = new Intent(this, typeof(MainMenuActivity));
            
             this.StartActivity(intent);
         }

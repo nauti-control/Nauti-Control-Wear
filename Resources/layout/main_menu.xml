@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+  android:padding="10dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:orientation="vertical"
+             android:layout_centerInParent="true"
+    android:layout_height="wrap_content"> 
+        
+        >
+       <Button
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:drawableStart="@drawable/remote"
+   android:drawablePadding="4dp"
+          android:drawableTint="#ff0000"
+          android:text="AP Remote" />
+           <Button
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+               android:drawableStart="@drawable/speedo"
+   android:drawablePadding="4dp"
+         
+          android:drawableTint="#ff0000"
+          android:text="Data Display" />
+    </LinearLayout>
+
+</RelativeLayout>
