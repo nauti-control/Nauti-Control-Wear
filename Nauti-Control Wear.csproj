@@ -13,6 +13,8 @@
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Resources\drawable\box_bg.xml" />
+    <None Remove="Resources\drawable\btdevice.xml" />
+    <None Remove="Resources\drawable\button.xml" />
     <None Remove="Resources\drawable\remote.xml" />
     <None Remove="Resources\drawable\speedo.xml" />
     <None Remove="Resources\layout\bluetooth_item.xml" />

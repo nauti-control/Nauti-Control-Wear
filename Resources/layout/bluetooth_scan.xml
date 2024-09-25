@@ -4,6 +4,7 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:paddingTop="10dp"
+    android:paddingBottom="15dp"
     android:id="@+id/bt_scan"
     android:orientation="vertical">
 
@@ -13,26 +14,27 @@
         android:layout_gravity="center_horizontal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Select BT Device"
-        android:textSize="17sp"
+        android:text="Bluetooth"
+        android:textAlignment="center"
+        android:textSize="@dimen/abc_text_size_large_material"
         android:textStyle="bold" />
 
     <ListView
-        android:layout_marginHorizontal="5dp"
+     
         android:id="@+id/idbtdevice"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        
+        android:layout_marginHorizontal="20dp"        
          />
 
 
     <Button
         android:id="@+id/idbtstartscan"
         android:text="Start Scan"
-        android:textSize="15sp"
+        android:textSize="@dimen/abc_text_size_medium_material"
         android:minHeight="0dp"
-        android:padding="7dp"
+ 
         android:layout_gravity="center_horizontal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
