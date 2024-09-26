@@ -57,6 +57,8 @@ namespace Nauti_Control_Wear.ViewModels
 
         public event EventHandler? OnConnected;
 
+        public event EventHandler? OnDataUpdated;
+
 
         public BluetoothDeviceVM(BluetoothDevice device)
         {
@@ -210,6 +212,11 @@ namespace Nauti_Control_Wear.ViewModels
                     else if (UUID.FromString(SogCharacteristicUUID) == characteristic.Uuid)
                     {
                         Data.SOG = dobValue;
+                    }
+                    if (OnDataUpdated != null)
+                    {
+
+                        OnDataUpdated(this, null);
                     }
                 }
 

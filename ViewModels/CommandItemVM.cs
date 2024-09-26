@@ -13,11 +13,22 @@ namespace Nauti_Control_Wear.ViewModels
 {
     public  class CommandItemVM
     {
+        /// <summary>
+        /// Menu Text
+        /// </summary>
         public string MenuText { get; set; }
 
+        /// <summary>
+        /// Command
+        /// </summary>
         public int Command { get; set; }
 
 
+        /// <summary>
+        /// Command Item VM Constructor
+        /// </summary>
+        /// <param name="menuText">Menu Text</param>
+        /// <param name="command">Command</param>
         public CommandItemVM(string menuText, int command)
         {
             MenuText = menuText;

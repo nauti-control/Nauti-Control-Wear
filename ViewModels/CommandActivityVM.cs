@@ -6,13 +6,22 @@ namespace Nauti_Control_Wear.ViewModels
 {
     public class CommandActivityVM
     {
-        public CommandMenuVM? CommandMenuVM { get; private set; }  
-        public  BluetoothManagerVM BluetoothManagerVM { get; private set; }
+        /// <summary>
+        /// Command Menu VM
+        /// </summary>
+        public CommandMenuVM? CommandMenuVM { get; private set; }
+        /// <summary>
+        /// Bluetooth Manager VM
+        /// </summary>
+        public BluetoothManagerVM BluetoothManagerVM { get; private set; }
+        /// <summary>
+        /// Command Activty Constructor
+        /// </summary>
         public CommandActivityVM()
         {
-            BluetoothManagerVM=new BluetoothManagerVM();
-            CommandMenuVM= new CommandMenuVM();
-         
+            BluetoothManagerVM = new BluetoothManagerVM();
+            CommandMenuVM = new CommandMenuVM();
+
 
 
         }

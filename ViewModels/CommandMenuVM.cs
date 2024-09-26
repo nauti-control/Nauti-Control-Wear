@@ -13,8 +13,14 @@ namespace Nauti_Control_Wear.ViewModels
 {
     public class CommandMenuVM
     {
+        /// <summary>
+        /// Menu Items
+        /// </summary>
         public List<CommandItemVM> MenuItems { get; set; }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public CommandMenuVM ()
         {
             MenuItems = new List<CommandItemVM>();
@@ -36,6 +42,11 @@ namespace Nauti_Control_Wear.ViewModels
 
         }
 
+        /// <summary>
+        /// On Item Click
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="item"></param>
         public void OnItemClick(object sender, CommandItemVM item)
         {
             if (BluetoothDeviceVM.ConnectedInstance != null)

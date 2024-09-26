@@ -47,6 +47,8 @@ namespace Nauti_Control_Wear.ViewModels
                                                        .Build();
                         //ScanFilter? filter = new ScanFilter.Builder().SetServiceUuid(ParcelUuid.FromString("778e5a27-1cc1-4bca-994f-7b2dbe34fcc6")).Build();
                         //filters.Add(filter);
+
+
                         _bluetoothLeScanner.StartScan(filters, settings, this);
 
                         IsScanning = true;
