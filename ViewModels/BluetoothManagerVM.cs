@@ -12,12 +12,24 @@ namespace Nauti_Control_Wear.ViewModels
 {
     public class BluetoothManagerVM : ScanCallback
     {
+        /// <summary>
+        /// Bluetooth Adapter
+        /// </summary>
         private BluetoothAdapter? _bluetoothAdapter;
 
+        /// <summary>
+        /// Bluetooth Le Scanner
+        /// </summary>
         private BluetoothLeScanner? _bluetoothLeScanner;
 
+        /// <summary>
+        /// Bluetooth Device VM
+        /// </summary>
         private ObservableCollection<BluetoothDeviceVM> _bluetoothDeviceVMs = new ObservableCollection<BluetoothDeviceVM>();
 
+        /// <summary>
+        /// Bluetooth Devices
+        /// </summary>
         public ObservableCollection<BluetoothDeviceVM> BluetoothDevices
         {
             get
@@ -26,8 +38,14 @@ namespace Nauti_Control_Wear.ViewModels
             }
         }
 
+        /// <summary>
+        /// Is Scanning Flag
+        /// </summary>
         public bool IsScanning { get; internal set; }
 
+        /// <summary>
+        /// Start Scanning
+        /// </summary>
         public void StartScanning()
         {
             BluetoothManager? bluetoothManager = Android.App.Application.Context.GetSystemService(Context.BluetoothService) as BluetoothManager;
@@ -58,6 +76,9 @@ namespace Nauti_Control_Wear.ViewModels
             }
         }
 
+        /// <summary>
+        /// Stop Scanning
+        /// </summary>
         public void StopScanning()
         {
             if (_bluetoothLeScanner != null)

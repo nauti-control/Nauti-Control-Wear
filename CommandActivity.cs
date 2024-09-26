@@ -12,8 +12,18 @@ namespace Nauti_Control_Wear
     [Activity(Label = "@string/command_activity")]
     public class CommandActivity : Activity
     {
+        /// <summary>
+        /// VM
+        /// </summary>
         CommandActivityVM? _vm;
+        /// <summary>
+        /// Main Menu Adapter
+        /// </summary>
         CommandAdapter? _mainMenuAdapter;
+        /// <summary>
+        /// On Create
+        /// </summary>
+        /// <param name="savedInstanceState">Saved Instance</param>
         protected override void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);

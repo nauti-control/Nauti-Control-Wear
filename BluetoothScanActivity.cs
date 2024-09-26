@@ -14,9 +14,21 @@ namespace Nauti_Control_Wear;
 [Activity(Label = "@string/bluetooth_activity", MainLauncher = true)]
 public class BluetoothScanActivity : Activity
 {
+    /// <summary>
+    /// Request Enable BT
+    /// </summary>
     private static int REQUEST_ENABLE_BT = 1;
+    /// <summary>
+    /// Bluetooth Manager
+    /// </summary>
     private BluetoothManagerVM? _bluetoothManager;
+    /// <summary>
+    /// Scan Button
+    /// </summary>
     private Button? _scanButton;
+    /// <summary>
+    /// BT List Adapter
+    /// </summary>
     private BluetoothListAdapter? _btAdapter;
 
     /// <summary>
