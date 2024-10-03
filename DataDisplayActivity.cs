@@ -26,13 +26,18 @@ public class DataDisplayActivity : Activity, IDataDisplayVC
     /// <param name="data"></param>
     public void UpdateDataDisplay(BoatData data)
     {
-        _windSpeed.Text = string.Format("{0} kts", data.AWS);
-        _windAngle.Text = string.Format("{0} °", data.AWA);
-        _depth.Text = string.Format("{0} M", data.DPT);
-        _sog.Text = string.Format("{0} kts", data.SOG);
-        _stw.Text = string.Format("{0} kts", data.STW);
-        _cog.Text = string.Format("{0} °", data.COG);
-        _hdg.Text = string.Format("{0} °", data.HDG);
+
+        RunOnUiThread(() =>
+        {
+            _windSpeed.Text = string.Format("{0} kts", data.AWS);
+            _windAngle.Text = string.Format("{0} °", data.AWA);
+            _depth.Text = string.Format("{0} M", data.DPT);
+            _sog.Text = string.Format("{0} kts", data.SOG);
+            _stw.Text = string.Format("{0} kts", data.STW);
+            _cog.Text = string.Format("{0} °", data.COG);
+            _hdg.Text = string.Format("{0} °", data.HDG);
+        }
+        );
     }
 
     /// <summary>
