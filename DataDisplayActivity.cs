@@ -61,6 +61,10 @@ public class DataDisplayActivity : Activity, IDataDisplayVC
     private void SetupVM()
     {
         _vm = new DataDisplayActivityVM(this);
+        if (BluetoothDeviceVM.ConnectedInstance != null)
+        {
+            UpdateDataDisplay(BluetoothDeviceVM.ConnectedInstance.Data);
+        }
 
 
     }
