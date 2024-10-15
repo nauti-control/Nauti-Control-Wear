@@ -4,14 +4,14 @@ using Android.Content;
 using Android.Content.PM;
 using AndroidX.Core.App;
 using AndroidX.Core.Content;
-using AndroidX.Wear.Widget;
 using Nauti_Control_Wear.Adapters;
 using Nauti_Control_Wear.ViewModels;
 
 
 namespace Nauti_Control_Wear;
 
-[Activity(Label = "@string/bluetooth_activity", MainLauncher = true)]
+[Activity(Label = "@string/app_name" +
+    "", MainLauncher = true)]
 public class BluetoothScanActivity : Activity
 {
     /// <summary>
@@ -42,6 +42,7 @@ public class BluetoothScanActivity : Activity
         SetContentView(Resource.Layout.bluetooth_scan);
 
         _bluetoothManager = new BluetoothManagerVM();
+        _bluetoothManager.OnScanStatusChanged += _bluetoothManager_OnScanStatusChanged;
 
         ListView? mainList = FindViewById<ListView>(Resource.Id.idbtdevice);
         _scanButton = FindViewById<Button>(Resource.Id.idbtstartscan);
@@ -64,6 +65,26 @@ public class BluetoothScanActivity : Activity
 
     }
 
+    private void _bluetoothManager_OnScanStatusChanged(object? sender, EventArgs e)
+    {
+        if (_bluetoothManager.IsScanning)
+        {
+            if (_scanButton != null)
+            {
+
+                _scanButton.Text = "Stop Scan";
+            }
+        }
+        else
+        {
+            if (_scanButton != null)
+            {
+
+                _scanButton.Text = "Start Scan";
+            }
+        }
+    }
+
     /// <summary>
     /// Main List Item Click
     /// </summary>
@@ -76,21 +97,28 @@ public class BluetoothScanActivity : Activity
             BluetoothViewHolder? view = e.View.Tag as BluetoothViewHolder;
             if (view != null)
             {
+                // Save Battery Stop Scanning
+                _bluetoothManager.StopScanning();
                 view.Device.OnConnected += Device_OnConnected;
                 view.Device.Connect();
-       
+
             }
 
         }
     }
 
+    /// <summary>
+    /// Device On Connected
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void Device_OnConnected(object? sender, EventArgs e)
     {
-        BluetoothDeviceVM? deviceVM= sender as BluetoothDeviceVM;
+        BluetoothDeviceVM? deviceVM = sender as BluetoothDeviceVM;
         if (deviceVM != null)
         {
             Intent intent = new Intent(this, typeof(MainMenuActivity));
-           
+
             this.StartActivity(intent);
         }
     }
@@ -112,11 +140,7 @@ public class BluetoothScanActivity : Activity
                     {
 
                         _bluetoothManager.StartScanning();
-                        if (_scanButton != null)
-                        {
-                           
-                            _scanButton.Text = "Stop Scan";
-                        }
+
                     }
 
                 }
@@ -128,11 +152,7 @@ public class BluetoothScanActivity : Activity
             else
             {
                 _bluetoothManager.StopScanning();
-                if (_scanButton != null)
-                {
-
-                    _scanButton.Text = "Start Scan";
-                }
+         
             }
         }
 
@@ -194,10 +214,7 @@ public class BluetoothScanActivity : Activity
             {
 
                 _bluetoothManager.StartScanning();
-                if (_scanButton != null)
-                {
-                    _scanButton.Enabled = false;
-                }
+           
             }
         }
         else

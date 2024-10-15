@@ -38,10 +38,40 @@ namespace Nauti_Control_Wear.ViewModels
             }
         }
 
+
+        /// <summary>
+        /// Is Scanning
+        /// </summary>
+        private bool _isScanning;
+
+
         /// <summary>
         /// Is Scanning Flag
         /// </summary>
-        public bool IsScanning { get; internal set; }
+        public bool IsScanning
+        {
+            get
+            {
+                return _isScanning;
+            }
+
+            set
+            {
+                if (value != _isScanning)
+                {
+
+                    _isScanning = value;
+                    if (OnScanStatusChanged != null)
+                    {
+                        OnScanStatusChanged(this, EventArgs.Empty);
+                    }
+                }
+
+            }
+        }
+
+
+        public event EventHandler? OnScanStatusChanged;
 
         /// <summary>
         /// Start Scanning
@@ -89,6 +119,17 @@ namespace Nauti_Control_Wear.ViewModels
             }
         }
 
+        /// <summary>
+        /// Scan Failed
+        /// </summary>
+        /// <param name="errorCode"></param>
+        public override void OnScanFailed([GeneratedEnum] ScanFailure errorCode)
+        {
+            System.Diagnostics.Debug.WriteLine("Scan Failure = " + errorCode.ToString());
+            base.OnScanFailed(errorCode);
+            IsScanning = false;
+        }
+
 
 
         /// <summary>
@@ -108,6 +149,7 @@ namespace Nauti_Control_Wear.ViewModels
 
                     BluetoothDeviceVM bluetoothDeviceVM = new BluetoothDeviceVM(result.Device);
                     BluetoothDevices.Add(bluetoothDeviceVM);
+
                 }
 
             }

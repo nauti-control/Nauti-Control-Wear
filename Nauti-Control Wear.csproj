@@ -11,6 +11,16 @@
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
     <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);XA4218</MSBuildWarningsAsMessages>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <RunAOTCompilation>False</RunAOTCompilation>
+    <PublishTrimmed>False</PublishTrimmed>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <RunAOTCompilation>False</RunAOTCompilation>
+    <PublishTrimmed>False</PublishTrimmed>
+    <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
+    <DebugSymbols>True</DebugSymbols>
+  </PropertyGroup>
   <ItemGroup>
     <None Remove="Resources\drawable\box_bg.xml" />
     <None Remove="Resources\drawable\btdevice.xml" />
