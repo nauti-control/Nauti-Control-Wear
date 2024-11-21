@@ -4,7 +4,7 @@ This app is for Android Wear OS watches, currently it can send auto pilot comman
 <br/>
 <br/>
 Sign up for beta testing to support on Google Play Store and to download APK onto watch.
-https://play.google.com/apps/internaltest/4701254155670539437
+[https://play.google.com/apps/internaltest/4701254155670539437](https://play.google.com/store/apps/details?id=com.nauti_control.Nauti_Control_Wear)
 <br/>
 <br/>
 Visit main ST Wireless project for hardware design  https://github.com/nauti-control/STWirelessRemote
