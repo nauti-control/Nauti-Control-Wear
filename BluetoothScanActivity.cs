@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Android;
 using Android.Bluetooth;
 using Android.Content;
@@ -130,30 +131,37 @@ public class BluetoothScanActivity : Activity
     /// <param name="e">Event</param>
     private void ScanButton_Click(object? sender, EventArgs e)
     {
-        if (_bluetoothManager != null)
+        try
         {
-            if (!_bluetoothManager.IsScanning)
+            if (_bluetoothManager != null)
             {
-                if (CheckPermissions())
+                if (!_bluetoothManager.IsScanning)
                 {
-                    if (_bluetoothManager != null)
+                    if (CheckPermissions())
                     {
+                        if (_bluetoothManager != null)
+                        {
 
-                        _bluetoothManager.StartScanning();
+                            _bluetoothManager.StartScanning();
+
+                        }
 
                     }
-
+                    else
+                    {
+                        DisplayPermissionsDialog();
+                    }
                 }
                 else
                 {
-                    DisplayPermissionsDialog();
+                    _bluetoothManager.StopScanning();
+
                 }
             }
-            else
-            {
-                _bluetoothManager.StopScanning();
-         
-            }
+        }
+        catch (Exception ex)
+        {
+            DisplayErrorDialog(ex.Message);
         }
 
     }
@@ -166,6 +174,26 @@ public class BluetoothScanActivity : Activity
     {
         return (ContextCompat.CheckSelfPermission(this, Manifest.Permission.AccessFineLocation) == Permission.Granted);
 
+    }
+
+    /// <summary>
+    /// Display Permissions Dialog
+    /// </summary>
+    private void DisplayErrorDialog(string error)
+    {
+
+        AlertDialog.Builder alertDiag = new AlertDialog.Builder(this);
+        alertDiag.SetTitle("Error");
+        alertDiag.SetMessage(error);
+        alertDiag.SetNegativeButton("OK", (senderAlert, args) =>
+        {
+            alertDiag.Dispose();
+        });
+        Dialog? diag = alertDiag.Create();
+        if (diag != null)
+        {
+            diag.Show();
+        }
     }
 
 
