@@ -10,25 +10,30 @@ namespace Nauti_Control_Wear.Views
     public class SpeedGaugeView : BaseGaugeView
     {
         private const float MAX_SPEED = 30f; // 30 knots max speed
-        private const float LOW_SPEED_THRESHOLD = 2f; // 2 knots low speed warning
-        private const float CRUISE_SPEED_THRESHOLD = 6f; // 6 knots typical cruising speed
-        private const float HIGH_SPEED_THRESHOLD = 20f; // 20 knots high speed warning
+        private const float ARROW_LENGTH = 0.8f;
+        private const float ARROW_HEAD_LENGTH = 0.2f;
+        private const float ARROW_HEAD_ANGLE = 30f;
+        private const float SPEED_TEXT_SIZE = 20f;
+        private const float MARKER_LENGTH = 0.1f;
+        private const float MARKER_STROKE_WIDTH = 2f;
         
-        // Colors for speed ranges
-        private readonly Color _lowSpeedColor = Color.ParseColor("#808080");     // Gray for very low/stopped
-        private readonly Color _cruiseSpeedColor = Color.ParseColor("#00FF00"); // Green for cruising speed
-        private readonly Color _highSpeedColor = Color.ParseColor("#FFA500");   // Orange for high speed
-        private readonly Color _dangerSpeedColor = Color.ParseColor("#FF0000"); // Red for dangerous speed
+        // Colors
+        private readonly Color _needleColor = Color.White;
+        private readonly Color _textColor = Color.White;
+        private readonly Color _markerColor = Color.White;
         
-        // Pointer animation
-        private float _animatedValue = 0f;
-        private const float ANIMATION_SPEED = 0.2f; // Animation speed factor
+        // Speed values
+        private float _speedOverGround = 0f;
+        private float _speedThroughWater = 0f;
+        private bool _showSpeedOverGround = true; // Default to SOG
         
-        // Speed trend tracking
-        private float _previousSpeed = -1f;
-        private bool _isAccelerating = false;
-        private bool _isDecelerating = false;
-        private const float TREND_THRESHOLD = 0.3f; // Minimum change to indicate acceleration/deceleration
+        // Button properties
+        private const float BUTTON_WIDTH_RATIO = 0.5f; // Half of screen width
+        private const float BUTTON_HEIGHT_RATIO = 0.15f; // 15% of screen height
+        private const float BUTTON_PADDING = 20f; // Increased padding for larger button
+        private const float BUTTON_SPACING = 20f; // Increased spacing from text box
+        private RectF _buttonRect = new RectF();
+        private bool _isButtonPressed = false;
 
         public SpeedGaugeView(Context context) : base(context)
         {
@@ -43,29 +48,33 @@ namespace Nauti_Control_Wear.Views
             _unit = "kts";
             _label = "Speed";
         }
-        
+
+        protected override void Initialize()
+        {
+            base.Initialize();
+            _paint.TextSize = SPEED_TEXT_SIZE;
+            _paint.TextAlign = Paint.Align.Center;
+        }
+
         public override void UpdateValue(float value)
         {
-            // Track speed trend
-            if (_previousSpeed >= 0)
+            if (_showSpeedOverGround)
             {
-                _isAccelerating = value > _previousSpeed + TREND_THRESHOLD;
-                _isDecelerating = value < _previousSpeed - TREND_THRESHOLD;
-            }
-            _previousSpeed = value;
-            
-            // Use smooth animation for speed changes
-            if (Math.Abs(_animatedValue - value) > 0.1f)
-            {
-                _animatedValue += (value - _animatedValue) * ANIMATION_SPEED;
-                PostInvalidateOnAnimation();
+                _speedOverGround = value;
+                base.UpdateValue(value);
             }
             else
             {
-                _animatedValue = value;
+                _speedThroughWater = value;
+                base.UpdateValue(value);
             }
-            
-            base.UpdateValue(value);
+        }
+
+        public void UpdateSpeedValues(float sog, float stw)
+        {
+            _speedOverGround = sog;
+            _speedThroughWater = stw;
+            UpdateValue(_showSpeedOverGround ? sog : stw);
         }
 
         protected override void OnDraw(Canvas canvas)
@@ -76,360 +85,167 @@ namespace Nauti_Control_Wear.Views
 
             DrawBackground(canvas, centerX, centerY, radius);
             DrawRings(canvas, centerX, centerY, radius);
-            DrawSpeedZones(canvas, centerX, centerY, radius);
-            DrawSpeedArc(canvas, centerX, centerY, radius);
             DrawSpeedMarkers(canvas, centerX, centerY, radius);
             DrawSpeedNeedle(canvas, centerX, centerY, radius);
-            DrawTrendIndicator(canvas, centerX, centerY);
-            DrawValueText(canvas, centerX, centerY, radius);
-
-            // Draw speed warnings if needed
-            if (_currentValue < LOW_SPEED_THRESHOLD)
-            {
-                DrawSpeedLabel(canvas, centerX, centerY, "LOW SPEED", _lowSpeedColor, radius);
-            }
-            else if (_currentValue > HIGH_SPEED_THRESHOLD)
-            {
-                DrawSpeedLabel(canvas, centerX, centerY, "HIGH SPEED", _highSpeedColor, radius);
-            }
-            else if (_currentValue >= CRUISE_SPEED_THRESHOLD && _currentValue <= HIGH_SPEED_THRESHOLD)
-            {
-                DrawSpeedLabel(canvas, centerX, centerY, "CRUISING", _cruiseSpeedColor, radius);
-            }
-        }
-        
-        private void DrawSpeedZones(Canvas canvas, float centerX, float centerY, float radius)
-        {
-            _paint.SetStyle(Paint.Style.Fill);
-            _paint.Alpha = 40; // Very transparent
-            
-            RectF rectF = new RectF(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
-            
-            // Low speed zone (0-2 knots) - Gray
-            _paint.Color = _lowSpeedColor;
-            float lowSpeedAngle = (LOW_SPEED_THRESHOLD / MAX_SPEED) * 360f;
-            canvas.DrawArc(rectF, -90, lowSpeedAngle, true, _paint);
-            
-            // Cruising speed zone (2-6 knots) - Light green
-            _paint.Color = Color.ParseColor("#80FF80"); // Lighter green
-            float cruiseSpeedStartAngle = (LOW_SPEED_THRESHOLD / MAX_SPEED) * 360f;
-            float cruiseSpeedSweepAngle = ((CRUISE_SPEED_THRESHOLD - LOW_SPEED_THRESHOLD) / MAX_SPEED) * 360f;
-            canvas.DrawArc(rectF, -90 + cruiseSpeedStartAngle, cruiseSpeedSweepAngle, true, _paint);
-            
-            // Optimal cruising speed zone (6-20 knots) - Green
-            _paint.Color = _cruiseSpeedColor;
-            float optimalSpeedStartAngle = (CRUISE_SPEED_THRESHOLD / MAX_SPEED) * 360f;
-            float optimalSpeedSweepAngle = ((HIGH_SPEED_THRESHOLD - CRUISE_SPEED_THRESHOLD) / MAX_SPEED) * 360f;
-            canvas.DrawArc(rectF, -90 + optimalSpeedStartAngle, optimalSpeedSweepAngle, true, _paint);
-            
-            // High speed zone (20-30 knots) - Orange to Red gradient
-            _paint.Color = _highSpeedColor;
-            float highSpeedStartAngle = (HIGH_SPEED_THRESHOLD / MAX_SPEED) * 360f;
-            float highSpeedSweepAngle = ((MAX_SPEED - HIGH_SPEED_THRESHOLD) / MAX_SPEED) * 360f;
-            canvas.DrawArc(rectF, -90 + highSpeedStartAngle, highSpeedSweepAngle, true, _paint);
-            
-            // Reset alpha
-            _paint.Alpha = 255;
-        }
-
-        private void DrawSpeedArc(Canvas canvas, float centerX, float centerY, float radius)
-        {
-            _paint.StrokeWidth = GAUGE_STROKE_WIDTH;
-            float sweepAngle = (_currentValue / _maxValue) * 360f;
-
-            // Set arc color based on speed
-            if (_currentValue < LOW_SPEED_THRESHOLD)
-            {
-                _paint.Color = _lowSpeedColor; // Gray for low speed
-            }
-            else if (_currentValue <= CRUISE_SPEED_THRESHOLD)
-            {
-                _paint.Color = Color.ParseColor("#80FF80"); // Light green for approaching cruise
-            }
-            else if (_currentValue <= HIGH_SPEED_THRESHOLD)
-            {
-                _paint.Color = _cruiseSpeedColor; // Green for normal speed
-            }
-            else
-            {
-                _paint.Color = _highSpeedColor; // Orange for high speed
-            }
-
-            _paint.SetStyle(Paint.Style.Stroke);
-            
-            // Draw arc
-            RectF rectF = new RectF(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
-            canvas.DrawArc(rectF, -90f, sweepAngle, false, _paint);
-            
-            // Draw dot at end of arc
-            float angle = (-90 + sweepAngle) * (float)Math.PI / 180f;
-            float dotX = centerX + radius * (float)Math.Cos(angle);
-            float dotY = centerY + radius * (float)Math.Sin(angle);
-            
-            _paint.SetStyle(Paint.Style.Fill);
-            canvas.DrawCircle(dotX, dotY, GAUGE_STROKE_WIDTH, _paint);
+            DrawSpeedValue(canvas, centerX, centerY);
+            DrawSpeedTypeButton(canvas, centerX, centerY);
         }
 
         private void DrawSpeedNeedle(Canvas canvas, float centerX, float centerY, float radius)
         {
-            // Use animatedValue for smooth transitions
-            float sweepAngle = (_animatedValue / _maxValue) * 360f;
-            float angle = (-90 + sweepAngle) * (float)Math.PI / 180f;
-            
-            // Select needle color based on speed
-            if (_animatedValue < LOW_SPEED_THRESHOLD)
-            {
-                _paint.Color = _lowSpeedColor;
-            }
-            else if (_animatedValue <= CRUISE_SPEED_THRESHOLD)
-            {
-                _paint.Color = Color.ParseColor("#80FF80");
-            }
-            else if (_animatedValue <= HIGH_SPEED_THRESHOLD)
-            {
-                _paint.Color = _cruiseSpeedColor;
-            }
-            else
-            {
-                _paint.Color = _highSpeedColor;
-            }
-            
-            // Draw needle
-            float needleLength = radius * 0.85f;
-            float baseWidth = 8f;
-            _paint.StrokeWidth = 2f;
-            // Use both fill and stroke for the needle
-            _paint.SetStyle(Paint.Style.Fill);
-            
-            // Create a path for the needle
-            Path needlePath = new Path();
-            float tipX = centerX + needleLength * (float)Math.Cos(angle);
-            float tipY = centerY + needleLength * (float)Math.Sin(angle);
-            
-            // Calculate base points perpendicular to needle angle
-            float baseAngle = angle + (float)Math.PI/2;
-            float baseX1 = centerX + baseWidth * (float)Math.Cos(baseAngle);
-            float baseY1 = centerY + baseWidth * (float)Math.Sin(baseAngle);
-            float baseX2 = centerX - baseWidth * (float)Math.Cos(baseAngle);
-            float baseY2 = centerY - baseWidth * (float)Math.Sin(baseAngle);
-            
-            // Draw needle
-            needlePath.MoveTo(tipX, tipY);
-            needlePath.LineTo(baseX1, baseY1);
-            needlePath.LineTo(baseX2, baseY2);
-            needlePath.Close();
-            
-            canvas.DrawPath(needlePath, _paint);
-            
-            // Set stroke for outline
+            _paint.Color = _needleColor;
+            _paint.StrokeWidth = GAUGE_STROKE_WIDTH;
             _paint.SetStyle(Paint.Style.Stroke);
-            canvas.DrawPath(needlePath, _paint);
-            
-            // Draw center hub
-            _paint.Color = Color.White;
-            _paint.SetStyle(Paint.Style.Fill);
-            canvas.DrawCircle(centerX, centerY, baseWidth, _paint);
-        }
-        
-        private void DrawTrendIndicator(Canvas canvas, float centerX, float centerY)
-        {
-            if (!_isAccelerating && !_isDecelerating)
-                return;
-                
-            _paint.SetStyle(Paint.Style.Fill);
-            
-            float arrowSize = 12f;
-            float xCenter = centerX;
-            float yCenter = centerY + 40; // Position below center
-            
-            Path arrowPath = new Path();
-            
-            if (_isAccelerating)
-            {
-                // Increasing speed
-                _paint.Color = (_currentValue > HIGH_SPEED_THRESHOLD) ? _dangerSpeedColor : _cruiseSpeedColor;
-                
-                // Draw right arrow
-                arrowPath.MoveTo(xCenter + arrowSize, yCenter);
-                arrowPath.LineTo(xCenter - arrowSize/2, yCenter + arrowSize);
-                arrowPath.LineTo(xCenter - arrowSize/2, yCenter - arrowSize);
-                arrowPath.Close();
-                
-                canvas.DrawPath(arrowPath, _paint);
-                
-                // Draw second arrow for strong acceleration
-                if (_currentValue > _previousSpeed + TREND_THRESHOLD * 2)
-                {
-                    arrowPath.Reset();
-                    arrowPath.MoveTo(xCenter + arrowSize - 15, yCenter);
-                    arrowPath.LineTo(xCenter - arrowSize/2 - 15, yCenter + arrowSize);
-                    arrowPath.LineTo(xCenter - arrowSize/2 - 15, yCenter - arrowSize);
-                    arrowPath.Close();
-                    
-                    canvas.DrawPath(arrowPath, _paint);
-                }
-            }
-            else if (_isDecelerating)
-            {
-                // Decreasing speed
-                _paint.Color = _lowSpeedColor;
-                
-                // Draw left arrow
-                arrowPath.MoveTo(xCenter - arrowSize, yCenter);
-                arrowPath.LineTo(xCenter + arrowSize/2, yCenter + arrowSize);
-                arrowPath.LineTo(xCenter + arrowSize/2, yCenter - arrowSize);
-                arrowPath.Close();
-                
-                canvas.DrawPath(arrowPath, _paint);
-                
-                // Draw second arrow for strong deceleration
-                if (_currentValue < _previousSpeed - TREND_THRESHOLD * 2)
-                {
-                    arrowPath.Reset();
-                    arrowPath.MoveTo(xCenter - arrowSize + 15, yCenter);
-                    arrowPath.LineTo(xCenter + arrowSize/2 + 15, yCenter + arrowSize);
-                    arrowPath.LineTo(xCenter + arrowSize/2 + 15, yCenter - arrowSize);
-                    arrowPath.Close();
-                    
-                    canvas.DrawPath(arrowPath, _paint);
-                }
-            }
+
+            using var path = new Path();
+            float angle = (_currentValue / _maxValue) * 360f;
+            float arrowLength = radius * ARROW_LENGTH;
+            float headLength = radius * ARROW_HEAD_LENGTH;
+
+            // Calculate arrow points (0° at top)
+            float radians = angle * (float)Math.PI / 180f;
+            float endX = centerX + arrowLength * (float)Math.Sin(radians);
+            float endY = centerY - arrowLength * (float)Math.Cos(radians);
+
+            // Draw arrow shaft
+            path.MoveTo(centerX, centerY);
+            path.LineTo(endX, endY);
+
+            // Calculate and draw arrow head
+            float headAngle1 = (angle + ARROW_HEAD_ANGLE) * (float)Math.PI / 180f;
+            float headAngle2 = (angle - ARROW_HEAD_ANGLE) * (float)Math.PI / 180f;
+
+            float head1X = endX - headLength * (float)Math.Sin(headAngle1);
+            float head1Y = endY + headLength * (float)Math.Cos(headAngle1);
+            float head2X = endX - headLength * (float)Math.Sin(headAngle2);
+            float head2Y = endY + headLength * (float)Math.Cos(headAngle2);
+
+            path.MoveTo(endX, endY);
+            path.LineTo(head1X, head1Y);
+            path.MoveTo(endX, endY);
+            path.LineTo(head2X, head2Y);
+
+            canvas.DrawPath(path, _paint);
         }
 
         private void DrawSpeedMarkers(Canvas canvas, float centerX, float centerY, float radius)
         {
-            _paint.Color = Color.White;
-            _paint.SetStyle(Paint.Style.Fill);
-            _paint.TextSize = TEXT_SIZE / 2;
+            _paint.Color = _markerColor;
+            _paint.StrokeWidth = MARKER_STROKE_WIDTH;
+            _paint.SetStyle(Paint.Style.Stroke);
+            _paint.TextSize = SPEED_TEXT_SIZE * 0.6f;
 
-            // Draw colored speed threshold markers
-            DrawColoredMarker(canvas, centerX, centerY, radius, LOW_SPEED_THRESHOLD, _lowSpeedColor);
-            DrawColoredMarker(canvas, centerX, centerY, radius, CRUISE_SPEED_THRESHOLD, _cruiseSpeedColor);
-            DrawColoredMarker(canvas, centerX, centerY, radius, HIGH_SPEED_THRESHOLD, _highSpeedColor);
-            
-            // Draw regular speed markers
-            for (int i = 0; i <= 6; i++)
+            // Draw markers every 5 knots
+            for (int speed = 0; speed <= MAX_SPEED; speed += 5)
             {
-                float speed = i * 5f;
-                DrawMarker(canvas, centerX, centerY, radius, speed, Color.White);
-            }
-            
-            // Draw minor ticks
-            for (int i = 0; i < 30; i++)
-            {
-                if (i % 5 != 0) // Skip positions where major ticks are
-                {
-                    float speed = i;
-                    float angle = (speed / MAX_SPEED) * 360f;
-                    float radian = (float)((angle - 90) * Math.PI / 180);
-                    float x = centerX + radius * (float)Math.Cos(radian);
-                    float y = centerY + radius * (float)Math.Sin(radian);
-                    
-                    // Draw smaller tick mark
-                    _paint.Color = Color.Gray;
-                    _paint.StrokeWidth = 1f;
-                    float tickLength = 5f;
-                    float innerX = centerX + (radius - tickLength) * (float)Math.Cos(radian);
-                    float innerY = centerY + (radius - tickLength) * (float)Math.Sin(radian);
-                    canvas.DrawLine(x, y, innerX, innerY, _paint);
-                }
-            }
-        }
-        
-        private void DrawColoredMarker(Canvas canvas, float centerX, float centerY, float radius, 
-                                     float speed, Color color)
-        {
-            float angle = (speed / MAX_SPEED) * 360f;
-            float radian = (float)((angle - 90) * Math.PI / 180);
-            float x = centerX + radius * (float)Math.Cos(radian);
-            float y = centerY + radius * (float)Math.Sin(radian);
-
-            // Draw colored marker line
-            _paint.Color = color;
-            _paint.StrokeWidth = 3f;
-            float markerLength = 15f;
-            float innerX = centerX + (radius - markerLength) * (float)Math.Cos(radian);
-            float innerY = centerY + (radius - markerLength) * (float)Math.Sin(radian);
-            canvas.DrawLine(x, y, innerX, innerY, _paint);
-
-            // Draw speed value with colored text
-            _paint.TextSize = TEXT_SIZE / 2;
-            float textX = centerX + (radius - markerLength - 15) * (float)Math.Cos(radian);
-            float textY = centerY + (radius - markerLength - 15) * (float)Math.Sin(radian);
-            // Adjust text position for better readability
-            textY += 5; // Slight vertical adjustment
-            
-            canvas.DrawText($"{speed}", textX, textY, _paint);
-        }
-        
-        private void DrawMarker(Canvas canvas, float centerX, float centerY, float radius, 
-                              float speed, Color color)
-        {
-            float angle = (speed / MAX_SPEED) * 360f;
-            float radian = (float)((angle - 90) * Math.PI / 180);
-            float x = centerX + radius * (float)Math.Cos(radian);
-            float y = centerY + radius * (float)Math.Sin(radian);
-
-            // Draw marker line
-            _paint.Color = color;
-            _paint.StrokeWidth = 2f;
-            float markerLength = 10f;
-            float innerX = centerX + (radius - markerLength) * (float)Math.Cos(radian);
-            float innerY = centerY + (radius - markerLength) * (float)Math.Sin(radian);
-            canvas.DrawLine(x, y, innerX, innerY, _paint);
-
-            // Only draw labels for major markers (multiples of 5)
-            if (speed % 5 == 0)
-            {
-                // Draw speed value
-                _paint.TextSize = TEXT_SIZE / 2.5f;
-                float textX = centerX + (radius + 5) * (float)Math.Cos(radian);
-                float textY = centerY + (radius + 5) * (float)Math.Sin(radian);
-                // Adjust text position for better readability
-                textY += 5; // Slight vertical adjustment
+                float angle = (speed / _maxValue) * 360f;
+                float radians = angle * (float)Math.PI / 180f;
+                float markerLength = radius * MARKER_LENGTH;
                 
+                // Draw marker line
+                float startX = centerX + (radius - markerLength) * (float)Math.Sin(radians);
+                float startY = centerY - (radius - markerLength) * (float)Math.Cos(radians);
+                float endX = centerX + radius * (float)Math.Sin(radians);
+                float endY = centerY - radius * (float)Math.Cos(radians);
+                
+                canvas.DrawLine(startX, startY, endX, endY, _paint);
+
+                // Draw speed text
+                float textX = centerX + (radius + 20) * (float)Math.Sin(radians);
+                float textY = centerY - (radius + 20) * (float)Math.Cos(radians) + SPEED_TEXT_SIZE * 0.3f;
                 canvas.DrawText($"{speed}", textX, textY, _paint);
             }
         }
 
-        protected override void DrawValueText(Canvas canvas, float centerX, float centerY, float radius)
+        private void DrawSpeedValue(Canvas canvas, float centerX, float centerY)
         {
+            // Calculate text sizes and positions first
+            _paint.TextSize = SPEED_TEXT_SIZE * 3.75f;
+            float speedWidth = _paint.MeasureText($"{_currentValue:F1}");
+            _paint.TextSize = SPEED_TEXT_SIZE * 1.8f;
+            float unitWidth = _paint.MeasureText(_unit);
+            
+            // Calculate box dimensions with padding
+            float padding = SPEED_TEXT_SIZE * 0.75f;
+            float boxWidth = Math.Max(speedWidth, unitWidth) + padding * 2;
+            float boxHeight = SPEED_TEXT_SIZE * 6.0f + padding * 2;
+            
+            // Draw semi-transparent background box
+            _paint.Color = Color.ParseColor("#80000000"); // Black with 50% alpha
             _paint.SetStyle(Paint.Style.Fill);
+            RectF boxRect = new RectF(
+                centerX - boxWidth / 2,
+                centerY - boxHeight / 2,
+                centerX + boxWidth / 2,
+                centerY + boxHeight / 2
+            );
+            canvas.DrawRoundRect(boxRect, SPEED_TEXT_SIZE * 0.75f, SPEED_TEXT_SIZE * 0.75f, _paint);
             
-            // Set text color based on speed
-            if (_currentValue < LOW_SPEED_THRESHOLD)
-            {
-                _paint.Color = _lowSpeedColor;
-            }
-            else if (_currentValue <= CRUISE_SPEED_THRESHOLD)
-            {
-                _paint.Color = Color.ParseColor("#80FF80");
-            }
-            else if (_currentValue <= HIGH_SPEED_THRESHOLD)
-            {
-                _paint.Color = _cruiseSpeedColor;
-            }
-            else
-            {
-                _paint.Color = _highSpeedColor;
-            }
-            
-            // Draw main speed value
-            _paint.TextSize = TEXT_SIZE * 1.5f;
+            // Draw speed value text
+            _paint.Color = _textColor;
+            _paint.TextSize = SPEED_TEXT_SIZE * 3.75f;
             canvas.DrawText($"{_currentValue:F1}", centerX, centerY, _paint);
             
-            // Draw unit and label
-            _paint.TextSize = TEXT_SIZE;
-            canvas.DrawText(_unit, centerX, centerY + TEXT_SIZE * 1.5f, _paint);
-            canvas.DrawText(_label, centerX, centerY + radius + 40, _paint);
+            // Draw unit text
+            _paint.TextSize = SPEED_TEXT_SIZE * 1.8f;
+            canvas.DrawText(_unit, centerX, centerY + SPEED_TEXT_SIZE * 3.0f, _paint);
         }
 
-        private void DrawSpeedLabel(Canvas canvas, float centerX, float centerY, string text, Color color, float radius)
+        private void DrawSpeedTypeButton(Canvas canvas, float centerX, float centerY)
         {
-            _paint.Color = color;
-            _paint.TextSize = TEXT_SIZE;
+            // Calculate button dimensions based on screen size
+            float buttonWidth = Width * BUTTON_WIDTH_RATIO;
+            float buttonHeight = Height * BUTTON_HEIGHT_RATIO;
+            
+            // Calculate button position (below the text box)
+            float buttonX = centerX;
+            float buttonY = centerY + SPEED_TEXT_SIZE * 4.0f + BUTTON_SPACING;
+            
+            // Create button rectangle
+            _buttonRect = new RectF(
+                buttonX - buttonWidth / 2,
+                buttonY - buttonHeight / 2,
+                buttonX + buttonWidth / 2,
+                buttonY + buttonHeight / 2
+            );
+            
+            // Draw button background
+            _paint.Color = _isButtonPressed ? Color.ParseColor("#404040") : Color.ParseColor("#808080");
             _paint.SetStyle(Paint.Style.Fill);
-            canvas.DrawText(text, centerX, centerY - radius / 2, _paint);
+            canvas.DrawRoundRect(_buttonRect, BUTTON_PADDING, BUTTON_PADDING, _paint);
+            
+            // Draw button text (show alternative speed type)
+            _paint.Color = Color.White;
+            _paint.TextSize = SPEED_TEXT_SIZE * 2.0f; // Much larger text
+            string buttonText = _showSpeedOverGround ? "STW" : "SOG";
+            canvas.DrawText(buttonText, buttonX, buttonY + SPEED_TEXT_SIZE * 0.6f, _paint); // Adjusted vertical offset
+        }
+
+        public override bool OnTouchEvent(MotionEvent? e)
+        {
+            if (e == null) return false;
+            
+            if (e.Action == MotionEventActions.Down)
+            {
+                if (_buttonRect != null && _buttonRect.Contains(e.GetX(), e.GetY()))
+                {
+                    _isButtonPressed = true;
+                    Invalidate();
+                    return true;
+                }
+            }
+            else if (e.Action == MotionEventActions.Up)
+            {
+                if (_isButtonPressed && _buttonRect != null && _buttonRect.Contains(e.GetX(), e.GetY()))
+                {
+                    _showSpeedOverGround = !_showSpeedOverGround;
+                    UpdateValue(_showSpeedOverGround ? _speedOverGround : _speedThroughWater);
+                }
+                _isButtonPressed = false;
+                Invalidate();
+                return true;
+            }
+            return base.OnTouchEvent(e);
         }
     }
 } 

@@ -81,16 +81,16 @@ namespace Nauti_Control_Wear.Views
             RectF rectF = new RectF(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
             
             // Port side (left, 320 to 0 degrees)
-            // Note: DrawArc measures angles clockwise from 3 o'clock, so we need to adjust
-            // 320 degrees becomes -40 degrees from 3 o'clock
-            canvas.DrawArc(rectF, -40, CLOSE_HAULED_ANGLE, true, _windPaint);
+            // Note: DrawArc measures angles clockwise from 3 o'clock
+            // 320 degrees is -130 degrees from 3 o'clock (90° - 320° = -230°)
+            canvas.DrawArc(rectF, -130, CLOSE_HAULED_ANGLE, true, _windPaint);
             
             // Starboard tack close-hauled sector (green, right side)
             _windPaint.Color = _starboardColor;
             
             // Starboard side (right, 0 to 40 degrees)
-            // Note: DrawArc measures angles clockwise from 3 o'clock, so we need to adjust
-            // 0 degrees becomes -90 degrees from 3 o'clock
+            // Note: DrawArc measures angles clockwise from 3 o'clock
+            // 0 degrees is -90 degrees from 3 o'clock
             canvas.DrawArc(rectF, -90, CLOSE_HAULED_ANGLE, true, _windPaint);
             
             // Reset alpha
@@ -177,14 +177,36 @@ namespace Nauti_Control_Wear.Views
 
         private void DrawWindSpeed(Canvas canvas, float centerX, float centerY)
         {
-            _windPaint.Color = Color.White;
-            _windPaint.SetStyle(Paint.Style.Fill);
-            _windPaint.TextSize = WIND_TEXT_SIZE * 1.5f;
+            // Calculate text sizes and positions first
+            _windPaint.TextSize = WIND_TEXT_SIZE * 3.75f;
+            float speedWidth = _windPaint.MeasureText($"{_windSpeed:F1}");
+            _windPaint.TextSize = WIND_TEXT_SIZE * 1.8f;
+            float unitWidth = _windPaint.MeasureText("kts");
             
-            // Draw wind speed in center
+            // Calculate box dimensions with padding
+            float padding = WIND_TEXT_SIZE * 0.75f;
+            float boxWidth = Math.Max(speedWidth, unitWidth) + padding * 2;
+            float boxHeight = WIND_TEXT_SIZE * 6.0f + padding * 2;
+            
+            // Draw semi-transparent background box
+            _windPaint.Color = Color.ParseColor("#80000000"); // Black with 50% alpha
+            _windPaint.SetStyle(Paint.Style.Fill);
+            RectF boxRect = new RectF(
+                centerX - boxWidth / 2,
+                centerY - boxHeight / 2,
+                centerX + boxWidth / 2,
+                centerY + boxHeight / 2
+            );
+            canvas.DrawRoundRect(boxRect, WIND_TEXT_SIZE * 0.75f, WIND_TEXT_SIZE * 0.75f, _windPaint);
+            
+            // Draw wind speed text
+            _windPaint.Color = Color.White;
+            _windPaint.TextSize = WIND_TEXT_SIZE * 3.75f;
             canvas.DrawText($"{_windSpeed:F1}", centerX, centerY, _windPaint);
-            _windPaint.TextSize = WIND_TEXT_SIZE;
-            canvas.DrawText("kts", centerX, centerY + WIND_TEXT_SIZE * 1.2f, _windPaint);
+            
+            // Draw unit text
+            _windPaint.TextSize = WIND_TEXT_SIZE * 1.8f;
+            canvas.DrawText("kts", centerX, centerY + WIND_TEXT_SIZE * 3.0f, _windPaint);
         }
     }
 } 

@@ -10,26 +10,27 @@ namespace Nauti_Control_Wear.Views
     public class DepthGaugeView : BaseGaugeView
     {
         private const float MAX_DEPTH = 100f; // 100 meters max depth
-        private const float CRITICAL_DEPTH = 3f; // 3 meters critical warning (immediate danger)
+        private const float ARROW_LENGTH = 0.8f;
+        private const float ARROW_HEAD_LENGTH = 0.2f;
+        private const float ARROW_HEAD_ANGLE = 30f;
+        private const float DEPTH_TEXT_SIZE = 20f;
+        private const float MARKER_LENGTH = 0.1f;
+        private const float MARKER_STROKE_WIDTH = 2f;
+        
+        // Colors
+        private readonly Color _needleColor = Color.White;
+        private readonly Color _textColor = Color.White;
+        private readonly Color _markerColor = Color.White;
+        private readonly Color _warningColor = Color.ParseColor("#FF0000");  // Red for warnings
+
+        // Warning thresholds
+        private const float CRITICAL_DEPTH = 3f; // 3 meters critical warning
         private const float SHALLOW_WATER_THRESHOLD = 10f; // 10 meters shallow water warning
-        private const float DEEP_WATER_THRESHOLD = 50f; // 50 meters deep water warning
         
         // Animation for shallow water alerts
         private bool _flashWarning = false;
         private long _lastFlashTime = 0;
         private const long FLASH_INTERVAL = 500; // Flash every 500ms
-
-        // Colors
-        private readonly Color _dangerColor = Color.ParseColor("#FF0000");  // Red for dangerous shallow
-        private readonly Color _cautionColor = Color.ParseColor("#FFA500");  // Orange for caution
-        private readonly Color _safeColor = Color.ParseColor("#00FF00");    // Green for safe depths
-        private readonly Color _deepColor = Color.ParseColor("#0000FF");    // Blue for deep water
-
-        // Depth trend tracking
-        private float _previousDepth = -1f;
-        private bool _isTrendUp = false;
-        private bool _isTrendDown = false;
-        private const float TREND_THRESHOLD = 0.5f; // Minimum change to indicate a trend
 
         public DepthGaugeView(Context context) : base(context)
         {
@@ -45,16 +46,15 @@ namespace Nauti_Control_Wear.Views
             _label = "Depth";
         }
 
+        protected override void Initialize()
+        {
+            base.Initialize();
+            _paint.TextSize = DEPTH_TEXT_SIZE;
+            _paint.TextAlign = Paint.Align.Center;
+        }
+
         public override void UpdateValue(float value)
         {
-            // Track depth trend
-            if (_previousDepth >= 0)
-            {
-                _isTrendUp = value > _previousDepth + TREND_THRESHOLD;
-                _isTrendDown = value < _previousDepth - TREND_THRESHOLD;
-            }
-            _previousDepth = value;
-            
             base.UpdateValue(value);
             
             // Flash warning animation for shallow water
@@ -65,7 +65,6 @@ namespace Nauti_Control_Wear.Views
                 {
                     _flashWarning = !_flashWarning;
                     _lastFlashTime = currentTime;
-                    // Force redraw for animation
                     PostInvalidateOnAnimation();
                 }
             }
@@ -79,260 +78,128 @@ namespace Nauti_Control_Wear.Views
 
             DrawBackground(canvas, centerX, centerY, radius);
             DrawRings(canvas, centerX, centerY, radius);
-            DrawSafetyZones(canvas, centerX, centerY, radius);
-            DrawDepthArc(canvas, centerX, centerY, radius);
             DrawDepthMarkers(canvas, centerX, centerY, radius);
-            DrawTrendIndicator(canvas, centerX, centerY);
-            DrawValueText(canvas, centerX, centerY, radius);
+            DrawDepthNeedle(canvas, centerX, centerY, radius);
+            DrawDepthValue(canvas, centerX, centerY);
 
             // Draw warning if in shallow water
             if (_currentValue <= CRITICAL_DEPTH)
             {
                 if (_flashWarning)
                 {
-                    DrawWarningText(canvas, centerX, centerY, "DANGER! VERY SHALLOW!", _dangerColor, radius);
+                    DrawWarningText(canvas, centerX, centerY, "DANGER! VERY SHALLOW!", _warningColor, radius);
                 }
             }
             else if (_currentValue < SHALLOW_WATER_THRESHOLD)
             {
-                DrawWarningText(canvas, centerX, centerY, "SHALLOW WATER!", _cautionColor, radius);
+                DrawWarningText(canvas, centerX, centerY, "SHALLOW WATER!", _warningColor, radius);
             }
         }
 
-        private void DrawSafetyZones(Canvas canvas, float centerX, float centerY, float radius)
+        private void DrawDepthNeedle(Canvas canvas, float centerX, float centerY, float radius)
         {
-            _paint.SetStyle(Paint.Style.Fill);
-            _paint.Alpha = 40; // Very transparent
-
-            RectF rectF = new RectF(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
-
-            // Critical danger zone (0-3m) - Red
-            _paint.Color = _dangerColor;
-            float criticalAngle = (CRITICAL_DEPTH / MAX_DEPTH) * 360f;
-            canvas.DrawArc(rectF, -90, criticalAngle, true, _paint);
-
-            // Caution zone (3-10m) - Orange
-            _paint.Color = _cautionColor;
-            float cautionAngle = ((SHALLOW_WATER_THRESHOLD - CRITICAL_DEPTH) / MAX_DEPTH) * 360f;
-            canvas.DrawArc(rectF, -90 + criticalAngle, cautionAngle, true, _paint);
-
-            // Normal zone (10-50m) - Green
-            _paint.Color = _safeColor;
-            float normalAngle = ((DEEP_WATER_THRESHOLD - SHALLOW_WATER_THRESHOLD) / MAX_DEPTH) * 360f;
-            canvas.DrawArc(rectF, -90 + criticalAngle + cautionAngle, normalAngle, true, _paint);
-
-            // Deep zone (50-100m) - Blue
-            _paint.Color = _deepColor;
-            float deepAngle = ((MAX_DEPTH - DEEP_WATER_THRESHOLD) / MAX_DEPTH) * 360f;
-            canvas.DrawArc(rectF, -90 + criticalAngle + cautionAngle + normalAngle, deepAngle, true, _paint);
-
-            // Reset alpha
-            _paint.Alpha = 255;
-        }
-
-        private void DrawDepthArc(Canvas canvas, float centerX, float centerY, float radius)
-        {
+            _paint.Color = _needleColor;
             _paint.StrokeWidth = GAUGE_STROKE_WIDTH;
-            float sweepAngle = (_currentValue / _maxValue) * 360f;
-            
-            // Set arc color based on depth
-            if (_currentValue <= CRITICAL_DEPTH)
-            {
-                _paint.Color = _flashWarning ? Color.White : _dangerColor; // Flash between red and white
-            }
-            else if (_currentValue < SHALLOW_WATER_THRESHOLD)
-            {
-                _paint.Color = _cautionColor; // Orange for shallow water
-            }
-            else if (_currentValue < DEEP_WATER_THRESHOLD)
-            {
-                _paint.Color = _safeColor; // Green for normal depth
-            }
-            else
-            {
-                _paint.Color = _deepColor; // Blue for deep water
-            }
-
             _paint.SetStyle(Paint.Style.Stroke);
-            
-            // Draw arc
-            RectF rectF = new RectF(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
-            canvas.DrawArc(rectF, -90f, sweepAngle, false, _paint);
-            
-            // Draw depth indicator (dot at end of arc)
-            float angle = (-90 + sweepAngle) * (float)Math.PI / 180f;
-            float dotX = centerX + radius * (float)Math.Cos(angle);
-            float dotY = centerY + radius * (float)Math.Sin(angle);
-            
-            _paint.SetStyle(Paint.Style.Fill);
-            canvas.DrawCircle(dotX, dotY, GAUGE_STROKE_WIDTH * 1.5f, _paint);
+
+            using var path = new Path();
+            float angle = (_currentValue / _maxValue) * 360f;
+            float arrowLength = radius * ARROW_LENGTH;
+            float headLength = radius * ARROW_HEAD_LENGTH;
+
+            // Calculate arrow points (0° at top)
+            float radians = angle * (float)Math.PI / 180f;
+            float endX = centerX + arrowLength * (float)Math.Sin(radians);
+            float endY = centerY - arrowLength * (float)Math.Cos(radians);
+
+            // Draw arrow shaft
+            path.MoveTo(centerX, centerY);
+            path.LineTo(endX, endY);
+
+            // Calculate and draw arrow head
+            float headAngle1 = (angle + ARROW_HEAD_ANGLE) * (float)Math.PI / 180f;
+            float headAngle2 = (angle - ARROW_HEAD_ANGLE) * (float)Math.PI / 180f;
+
+            float head1X = endX - headLength * (float)Math.Sin(headAngle1);
+            float head1Y = endY + headLength * (float)Math.Cos(headAngle1);
+            float head2X = endX - headLength * (float)Math.Sin(headAngle2);
+            float head2Y = endY + headLength * (float)Math.Cos(headAngle2);
+
+            path.MoveTo(endX, endY);
+            path.LineTo(head1X, head1Y);
+            path.MoveTo(endX, endY);
+            path.LineTo(head2X, head2Y);
+
+            canvas.DrawPath(path, _paint);
         }
 
         private void DrawDepthMarkers(Canvas canvas, float centerX, float centerY, float radius)
         {
-            _paint.Color = Color.White;
-            _paint.SetStyle(Paint.Style.Fill);
-            _paint.TextSize = TEXT_SIZE / 2;
+            _paint.Color = _markerColor;
+            _paint.StrokeWidth = MARKER_STROKE_WIDTH;
+            _paint.SetStyle(Paint.Style.Stroke);
+            _paint.TextSize = DEPTH_TEXT_SIZE * 0.6f;
 
-            // Draw critical depth marker
-            DrawColoredMarker(canvas, centerX, centerY, radius, CRITICAL_DEPTH, _dangerColor);
-            
-            // Draw shallow water threshold marker
-            DrawColoredMarker(canvas, centerX, centerY, radius, SHALLOW_WATER_THRESHOLD, _cautionColor);
-            
-            // Draw deep water threshold marker
-            DrawColoredMarker(canvas, centerX, centerY, radius, DEEP_WATER_THRESHOLD, _deepColor);
-
-            // Draw regular depth markers at 0, 20, 40, 60, 80, 100 meters
-            for (int i = 0; i <= 5; i++)
+            // Draw markers every 20 meters
+            for (int depth = 0; depth <= MAX_DEPTH; depth += 20)
             {
-                float depth = i * 20f;
-                DrawMarker(canvas, centerX, centerY, radius, depth, Color.White);
-            }
-        }
-        
-        private void DrawColoredMarker(Canvas canvas, float centerX, float centerY, float radius, 
-                                     float depth, Color color)
-        {
-            float angle = (depth / _maxValue) * 360f;
-            float radian = (float)((angle - 90) * Math.PI / 180);
-            float x = centerX + radius * (float)Math.Cos(radian);
-            float y = centerY + radius * (float)Math.Sin(radian);
-
-            // Draw colored marker line
-            _paint.Color = color;
-            _paint.StrokeWidth = 3f;
-            float markerLength = 15f;
-            float innerX = centerX + (radius - markerLength) * (float)Math.Cos(radian);
-            float innerY = centerY + (radius - markerLength) * (float)Math.Sin(radian);
-            canvas.DrawLine(x, y, innerX, innerY, _paint);
-
-            // Draw depth value with colored text
-            _paint.TextSize = TEXT_SIZE / 2;
-            float textX = centerX + (radius - markerLength - 15) * (float)Math.Cos(radian);
-            float textY = centerY + (radius - markerLength - 15) * (float)Math.Sin(radian);
-            // Adjust text position for better readability
-            textY += 5; // Slight vertical adjustment
-            
-            canvas.DrawText($"{depth}m", textX, textY, _paint);
-        }
-        
-        private void DrawMarker(Canvas canvas, float centerX, float centerY, float radius, 
-                              float depth, Color color)
-        {
-            float angle = (depth / _maxValue) * 360f;
-            float radian = (float)((angle - 90) * Math.PI / 180);
-            float x = centerX + radius * (float)Math.Cos(radian);
-            float y = centerY + radius * (float)Math.Sin(radian);
-
-            // Draw marker line
-            _paint.Color = color;
-            _paint.StrokeWidth = 2f;
-            float markerLength = 10f;
-            float innerX = centerX + (radius - markerLength) * (float)Math.Cos(radian);
-            float innerY = centerY + (radius - markerLength) * (float)Math.Sin(radian);
-            canvas.DrawLine(x, y, innerX, innerY, _paint);
-
-            // Draw small tick marks
-            if (depth % 20 == 0)
-            {
-                // Draw depth value
-                _paint.TextSize = TEXT_SIZE / 2.5f;
-                float textX = centerX + (radius + 5) * (float)Math.Cos(radian);
-                float textY = centerY + (radius + 5) * (float)Math.Sin(radian);
-                // Adjust text position for better readability
-                textY += 5; // Slight vertical adjustment
+                float angle = (depth / _maxValue) * 360f;
+                float radians = angle * (float)Math.PI / 180f;
+                float markerLength = radius * MARKER_LENGTH;
                 
+                // Draw marker line
+                float startX = centerX + (radius - markerLength) * (float)Math.Sin(radians);
+                float startY = centerY - (radius - markerLength) * (float)Math.Cos(radians);
+                float endX = centerX + radius * (float)Math.Sin(radians);
+                float endY = centerY - radius * (float)Math.Cos(radians);
+                
+                canvas.DrawLine(startX, startY, endX, endY, _paint);
+
+                // Draw depth text
+                float textX = centerX + (radius + 20) * (float)Math.Sin(radians);
+                float textY = centerY - (radius + 20) * (float)Math.Cos(radians) + DEPTH_TEXT_SIZE * 0.3f;
                 canvas.DrawText($"{depth}", textX, textY, _paint);
             }
         }
-        
-        private void DrawTrendIndicator(Canvas canvas, float centerX, float centerY)
-        {
-            if (!_isTrendUp && !_isTrendDown)
-                return;
-                
-            _paint.SetStyle(Paint.Style.Fill);
-            
-            float arrowSize = 15f;
-            float xCenter = centerX;
-            float yCenter = centerY + 50; // Position below center
-            
-            Path arrowPath = new Path();
-            
-            if (_isTrendUp)
-            {
-                // Decreasing depth = increasing seabed trend = potential danger
-                _paint.Color = _dangerColor;
-                
-                // Draw up arrow
-                arrowPath.MoveTo(xCenter, yCenter - arrowSize);
-                arrowPath.LineTo(xCenter + arrowSize, yCenter + arrowSize);
-                arrowPath.LineTo(xCenter - arrowSize, yCenter + arrowSize);
-                arrowPath.Close();
-                
-                canvas.DrawPath(arrowPath, _paint);
-                
-                // Draw text
-                _paint.TextSize = TEXT_SIZE / 2;
-                canvas.DrawText("Seabed Rising", xCenter, yCenter + arrowSize + 15, _paint);
-            }
-            else if (_isTrendDown)
-            {
-                // Increasing depth = decreasing seabed trend = safer
-                _paint.Color = _safeColor;
-                
-                // Draw down arrow
-                arrowPath.MoveTo(xCenter, yCenter + arrowSize);
-                arrowPath.LineTo(xCenter + arrowSize, yCenter - arrowSize);
-                arrowPath.LineTo(xCenter - arrowSize, yCenter - arrowSize);
-                arrowPath.Close();
-                
-                canvas.DrawPath(arrowPath, _paint);
-                
-                // Draw text
-                _paint.TextSize = TEXT_SIZE / 2;
-                canvas.DrawText("Seabed Lowering", xCenter, yCenter + arrowSize + 15, _paint);
-            }
-        }
 
-        protected override void DrawValueText(Canvas canvas, float centerX, float centerY, float radius)
+        private void DrawDepthValue(Canvas canvas, float centerX, float centerY)
         {
+            // Calculate text sizes and positions first
+            _paint.TextSize = DEPTH_TEXT_SIZE * 3.75f;
+            float depthWidth = _paint.MeasureText($"{_currentValue:F1}");
+            _paint.TextSize = DEPTH_TEXT_SIZE * 1.8f;
+            float unitWidth = _paint.MeasureText(_unit);
+            
+            // Calculate box dimensions with padding
+            float padding = DEPTH_TEXT_SIZE * 0.75f;
+            float boxWidth = Math.Max(depthWidth, unitWidth) + padding * 2;
+            float boxHeight = DEPTH_TEXT_SIZE * 6.0f + padding * 2;
+            
+            // Draw semi-transparent background box
+            _paint.Color = Color.ParseColor("#80000000"); // Black with 50% alpha
             _paint.SetStyle(Paint.Style.Fill);
-            _paint.TextSize = TEXT_SIZE;
+            RectF boxRect = new RectF(
+                centerX - boxWidth / 2,
+                centerY - boxHeight / 2,
+                centerX + boxWidth / 2,
+                centerY + boxHeight / 2
+            );
+            canvas.DrawRoundRect(boxRect, DEPTH_TEXT_SIZE * 0.75f, DEPTH_TEXT_SIZE * 0.75f, _paint);
             
-            // Set color based on depth
-            if (_currentValue <= CRITICAL_DEPTH)
-            {
-                _paint.Color = _dangerColor;
-            } 
-            else if (_currentValue < SHALLOW_WATER_THRESHOLD)
-            {
-                _paint.Color = _cautionColor;
-            }
-            else if (_currentValue < DEEP_WATER_THRESHOLD)
-            {
-                _paint.Color = _safeColor;
-            }
-            else
-            {
-                _paint.Color = _deepColor;
-            }
-            
-            // Draw value with larger text
-            _paint.TextSize = TEXT_SIZE * 1.5f;
+            // Draw depth value text
+            _paint.Color = _textColor;
+            _paint.TextSize = DEPTH_TEXT_SIZE * 3.75f;
             canvas.DrawText($"{_currentValue:F1}", centerX, centerY, _paint);
             
-            // Draw unit and label
-            _paint.TextSize = TEXT_SIZE;
-            canvas.DrawText(_unit, centerX, centerY + TEXT_SIZE * 1.5f, _paint);
-            canvas.DrawText(_label, centerX, centerY + radius + 40, _paint);
+            // Draw unit text
+            _paint.TextSize = DEPTH_TEXT_SIZE * 1.8f;
+            canvas.DrawText(_unit, centerX, centerY + DEPTH_TEXT_SIZE * 3.0f, _paint);
         }
 
         private void DrawWarningText(Canvas canvas, float centerX, float centerY, string text, Color color, float radius)
         {
             _paint.Color = color;
-            _paint.TextSize = TEXT_SIZE;
+            _paint.TextSize = DEPTH_TEXT_SIZE;
             _paint.SetStyle(Paint.Style.Fill);
             canvas.DrawText(text, centerX, centerY - radius / 2, _paint);
         }

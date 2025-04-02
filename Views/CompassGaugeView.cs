@@ -14,16 +14,26 @@ namespace Nauti_Control_Wear.Views
         private float _heading = 0f;
         private float _courseOverGround = 0f;
         private const float MAX_DEGREES = 360f;
-        private const float SHIP_SIZE = 0.15f;
+        private const float SHIP_SIZE = 0.08f; // Reduced from 0.15f
         private const float TICK_LENGTH = 0.1f;
         private const float COMPASS_STROKE_WIDTH = 3f;
         private const float COMPASS_TEXT_SIZE = 18f;
-        private const float COG_INDICATOR_LENGTH = 0.7f;
+        private const float SHIP_OFFSET = 0.3f; // Move ship up by 30% of radius
 
         // Colors
         private readonly Color _headingColor = Color.Red;
         private readonly Color _cogColor = Color.Green;
-        private readonly Color _ticksColor = Color.LightGray;
+        private readonly Color _ticksColor = Color.White;
+        private readonly Color _textColor = Color.White;
+        
+        // Button properties
+        private const float BUTTON_WIDTH_RATIO = 0.5f;
+        private const float BUTTON_HEIGHT_RATIO = 0.15f;
+        private const float BUTTON_PADDING = 20f;
+        private const float BUTTON_SPACING = 20f;
+        private RectF _buttonRect = new RectF();
+        private bool _isButtonPressed = false;
+        private bool _showHeading = true; // Default to showing heading
         
         public CompassGaugeView(Context context) : base(context)
         {
@@ -61,12 +71,11 @@ namespace Nauti_Control_Wear.Views
         {
             _heading = NormalizeAngle(heading);
             _courseOverGround = NormalizeAngle(cog);
-            UpdateValue(_heading);  // Updates the display value
+            UpdateValue(_showHeading ? _heading : _courseOverGround);
         }
 
         private float NormalizeAngle(float angle)
         {
-            // Ensure angle is between 0-360
             while (angle < 0) angle += 360;
             while (angle >= 360) angle -= 360;
             return angle;
@@ -82,8 +91,8 @@ namespace Nauti_Control_Wear.Views
             DrawCompassRose(canvas, centerX, centerY, radius);
             DrawCardinalPoints(canvas, centerX, centerY, radius);
             DrawHeadingIndicator(canvas, centerX, centerY, radius);
-            DrawCOGIndicator(canvas, centerX, centerY, radius);
-            DrawValueText(canvas, centerX, centerY, radius);
+            DrawValueText(canvas, centerX, centerY);
+            DrawCompassTypeButton(canvas, centerX, centerY);
         }
 
         private void DrawCompassRose(Canvas canvas, float centerX, float centerY, float radius)
@@ -115,7 +124,7 @@ namespace Nauti_Control_Wear.Views
                 {
                     _compassPaint.SetStyle(Paint.Style.Fill);
                     float textX = centerX + (radius - radius * TICK_LENGTH * 3) * (float)Math.Sin(tickRadians);
-                    float textY = centerY - (radius - radius * TICK_LENGTH * 3) * (float)Math.Cos(tickRadians) + 8; // +8 for vertical centering
+                    float textY = centerY - (radius - radius * TICK_LENGTH * 3) * (float)Math.Cos(tickRadians) + 8;
                     canvas.DrawText(i.ToString(), textX, textY, _compassPaint);
                     _compassPaint.SetStyle(Paint.Style.Stroke);
                 }
@@ -135,7 +144,7 @@ namespace Nauti_Control_Wear.Views
             {
                 float radians = (float)(angles[i] * Math.PI / 180f);
                 float x = centerX + (radius - radius * TICK_LENGTH * 5) * (float)Math.Sin(radians);
-                float y = centerY - (radius - radius * TICK_LENGTH * 5) * (float)Math.Cos(radians) + 8; // +8 for vertical centering
+                float y = centerY - (radius - radius * TICK_LENGTH * 5) * (float)Math.Cos(radians) + 8;
 
                 _compassPaint.Color = (cardinalPoints[i] == "N") ? Color.Red : Color.White;
                 canvas.DrawText(cardinalPoints[i], x, y, _compassPaint);
@@ -148,9 +157,9 @@ namespace Nauti_Control_Wear.Views
         {
             canvas.Save();
             
-            // Draw ship icon at center pointing in heading direction
-            canvas.Translate(centerX, centerY);
-            canvas.Rotate(_heading);
+            // Draw ship icon above center pointing up
+            float shipY = centerY - radius * SHIP_OFFSET;
+            canvas.Translate(centerX, shipY);
             
             float shipSize = radius * SHIP_SIZE;
             canvas.Scale(shipSize, shipSize);
@@ -162,47 +171,95 @@ namespace Nauti_Control_Wear.Views
             canvas.Restore();
         }
 
-        private void DrawCOGIndicator(Canvas canvas, float centerX, float centerY, float radius)
+        private void DrawValueText(Canvas canvas, float centerX, float centerY)
         {
-            _compassPaint.Color = _cogColor;
-            _compassPaint.StrokeWidth = COMPASS_STROKE_WIDTH;
-            _compassPaint.SetStyle(Paint.Style.Stroke);
+            // Calculate text sizes and positions first
+            _compassPaint.TextSize = COMPASS_TEXT_SIZE * 3.75f;
+            float valueWidth = _compassPaint.MeasureText($"{_currentValue:F0}");
+            _compassPaint.TextSize = COMPASS_TEXT_SIZE * 1.8f;
+            float unitWidth = _compassPaint.MeasureText(_unit);
             
-            float cogRadians = (float)(_courseOverGround * Math.PI / 180f);
-            float length = radius * COG_INDICATOR_LENGTH;
+            // Calculate box dimensions with padding
+            float padding = COMPASS_TEXT_SIZE * 0.75f;
+            float boxWidth = Math.Max(valueWidth, unitWidth) + padding * 2;
+            float boxHeight = COMPASS_TEXT_SIZE * 6.0f + padding * 2;
             
-            // Draw COG line
-            float endX = centerX + length * (float)Math.Sin(cogRadians);
-            float endY = centerY - length * (float)Math.Cos(cogRadians);
+            // Draw semi-transparent background box
+            _compassPaint.Color = Color.ParseColor("#80000000"); // Black with 50% alpha
+            _compassPaint.SetStyle(Paint.Style.Fill);
+            RectF boxRect = new RectF(
+                centerX - boxWidth / 2,
+                centerY - boxHeight / 2,
+                centerX + boxWidth / 2,
+                centerY + boxHeight / 2
+            );
+            canvas.DrawRoundRect(boxRect, COMPASS_TEXT_SIZE * 0.75f, COMPASS_TEXT_SIZE * 0.75f, _compassPaint);
             
-            canvas.DrawLine(centerX, centerY, endX, endY, _compassPaint);
+            // Draw value text
+            _compassPaint.Color = _textColor;
+            _compassPaint.TextSize = COMPASS_TEXT_SIZE * 3.75f;
+            canvas.DrawText($"{_currentValue:F0}", centerX, centerY, _compassPaint);
             
-            // Draw arrowhead
-            float arrowSize = radius * 0.05f;
-            float arrowAngle1 = (float)((_courseOverGround + 150) * Math.PI / 180f);
-            float arrowAngle2 = (float)((_courseOverGround - 150) * Math.PI / 180f);
-            
-            float arrow1X = endX + arrowSize * (float)Math.Sin(arrowAngle1);
-            float arrow1Y = endY - arrowSize * (float)Math.Cos(arrowAngle1);
-            float arrow2X = endX + arrowSize * (float)Math.Sin(arrowAngle2);
-            float arrow2Y = endY - arrowSize * (float)Math.Cos(arrowAngle2);
-            
-            canvas.DrawLine(endX, endY, arrow1X, arrow1Y, _compassPaint);
-            canvas.DrawLine(endX, endY, arrow2X, arrow2Y, _compassPaint);
+            // Draw unit text
+            _compassPaint.TextSize = COMPASS_TEXT_SIZE * 1.8f;
+            canvas.DrawText(_unit, centerX, centerY + COMPASS_TEXT_SIZE * 3.0f, _compassPaint);
         }
 
-        protected override void DrawValueText(Canvas canvas, float centerX, float centerY, float radius)
+        private void DrawCompassTypeButton(Canvas canvas, float centerX, float centerY)
         {
-            _compassPaint.Color = Color.White;
+            // Calculate button dimensions based on screen size
+            float buttonWidth = Width * BUTTON_WIDTH_RATIO;
+            float buttonHeight = Height * BUTTON_HEIGHT_RATIO;
+            
+            // Calculate button position (below the text box)
+            float buttonX = centerX;
+            float buttonY = centerY + COMPASS_TEXT_SIZE * 4.0f + BUTTON_SPACING;
+            
+            // Create button rectangle
+            _buttonRect = new RectF(
+                buttonX - buttonWidth / 2,
+                buttonY - buttonHeight / 2,
+                buttonX + buttonWidth / 2,
+                buttonY + buttonHeight / 2
+            );
+            
+            // Draw button background
+            _compassPaint.Color = _isButtonPressed ? Color.ParseColor("#404040") : Color.ParseColor("#808080");
             _compassPaint.SetStyle(Paint.Style.Fill);
+            canvas.DrawRoundRect(_buttonRect, BUTTON_PADDING, BUTTON_PADDING, _compassPaint);
             
-            // Draw heading
-            _compassPaint.Color = _headingColor;
-            canvas.DrawText($"HDG: {_heading:F0}°", centerX, centerY + radius + 30, _compassPaint);
+            // Draw button text (show alternative compass type)
+            _compassPaint.Color = Color.White;
+            _compassPaint.TextSize = COMPASS_TEXT_SIZE * 2.0f;
+            string buttonText = _showHeading ? "COG" : "HDG";
+            canvas.DrawText(buttonText, buttonX, buttonY + COMPASS_TEXT_SIZE * 0.6f, _compassPaint);
+        }
+
+        public override bool OnTouchEvent(MotionEvent? e)
+        {
+            if (e == null) return false;
             
-            // Draw COG
-            _compassPaint.Color = _cogColor;
-            canvas.DrawText($"COG: {_courseOverGround:F0}°", centerX, centerY + radius + 60, _compassPaint);
+            if (e.Action == MotionEventActions.Down)
+            {
+                if (_buttonRect != null && _buttonRect.Contains(e.GetX(), e.GetY()))
+                {
+                    _isButtonPressed = true;
+                    Invalidate();
+                    return true;
+                }
+            }
+            else if (e.Action == MotionEventActions.Up)
+            {
+                if (_isButtonPressed && _buttonRect != null && _buttonRect.Contains(e.GetX(), e.GetY()))
+                {
+                    _showHeading = !_showHeading;
+                    UpdateValue(_showHeading ? _heading : _courseOverGround);
+                }
+                _isButtonPressed = false;
+                Invalidate();
+                return true;
+            }
+            return base.OnTouchEvent(e);
         }
     }
 } 
