@@ -1,4 +1,5 @@
-﻿using Nauti_Control_Wear.ViewModels;
+﻿using Android.Widget;
+using Nauti_Control_Wear.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,20 +10,18 @@ namespace Nauti_Control_Wear.Adapters
 {
     public class BluetoothViewHolder : Java.Lang.Object
     {
-        public TextView? Name { get; set; }
+        private TextView _name;
+        public BluetoothDeviceVM? Device { get; private set; }
 
-        public BluetoothDeviceVM? Device { get; set; }
-
-        public BluetoothViewHolder (TextView nameTextView)
+        public BluetoothViewHolder(TextView nameTextView)
         {
-            Name = nameTextView;
+            _name = nameTextView ?? throw new ArgumentNullException(nameof(nameTextView));
         }
 
-        public void SetDevice (BluetoothDeviceVM device)
+        public void SetDevice(BluetoothDeviceVM device)
         {
-            Device = device;
-            Name.Text = device.Name;
-
+            Device = device ?? throw new ArgumentNullException(nameof(device));
+            _name.Text = device.Name;
         }
     }
 }

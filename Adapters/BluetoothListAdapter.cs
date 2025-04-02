@@ -72,11 +72,20 @@ namespace Nauti_Control_Wear.Adapters
         /// <returns>View</returns>
         public override View? GetView(int position, View? convertView, ViewGroup? parent)
         {
+            if (parent == null)
+            {
+                throw new ArgumentNullException(nameof(parent));
+            }
+
             View? view = convertView;
 
             if (view == null)
             {
-                view = LayoutInflater.From(parent.Context).Inflate(Resource.Layout.bluetooth_item, parent, false);
+                view = LayoutInflater.From(parent.Context)?.Inflate(Resource.Layout.bluetooth_item, parent, false);
+                if (view == null)
+                {
+                    throw new InvalidOperationException("Could not inflate bluetooth_item layout");
+                }
 
                 TextView? label = view.FindViewById<TextView>(Resource.Id.bt_text);
 
@@ -85,12 +94,9 @@ namespace Nauti_Control_Wear.Adapters
                     view.Tag = new BluetoothViewHolder(label);
                 }
             }
-
             else if (view.Tag != null)
             {
-                BluetoothViewHolder? holder = view.Tag as BluetoothViewHolder;
-
-                if (holder != null && holder.Name != null)
+                if (view.Tag is BluetoothViewHolder holder)
                 {
                     holder.SetDevice(_bluetoothManager.BluetoothDevices[position]);
                 }

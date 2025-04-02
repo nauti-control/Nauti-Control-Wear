@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- ViewPager for gauge rotation -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/gauge_pager"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginBottom="4dp"/>
+
+    <!-- Data Display Cards -->
+    <androidx.wear.widget.BoxInsetLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/device_card_background"
+            android:padding="8dp"
+            app:boxedEdges="all">
+
+            <!-- Wind Data -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Wind:"
+                    android:textSize="14sp"
+                    android:textColor="@color/primaryColor"/>
+
+                <TextView
+                    android:id="@+id/windangle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="---°"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/white"
+                    android:layout_marginStart="4dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="at"
+                    android:textSize="14sp"
+                    android:textColor="@color/primaryColor"
+                    android:layout_marginStart="8dp"/>
+
+                <TextView
+                    android:id="@+id/windspeed"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="--- kts"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/white"
+                    android:layout_marginStart="4dp"/>
+            </LinearLayout>
+
+            <!-- Speed Data -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="SOG:"
+                    android:textSize="14sp"
+                    android:textColor="@color/primaryColor"/>
+
+                <TextView
+                    android:id="@+id/sog"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="--- kts"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/white"
+                    android:layout_marginStart="4dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="STW:"
+                    android:textSize="14sp"
+                    android:textColor="@color/primaryColor"
+                    android:layout_marginStart="16dp"/>
+
+                <TextView
+                    android:id="@+id/stw"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="--- kts"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/white"
+                    android:layout_marginStart="4dp"/>
+            </LinearLayout>
+
+            <!-- Heading and Depth -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="HDG:"
+                    android:textSize="14sp"
+                    android:textColor="@color/primaryColor"/>
+
+                <TextView
+                    android:id="@+id/hdg"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="---°"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/white"
+                    android:layout_marginStart="4dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="DPT:"
+                    android:textSize="14sp"
+                    android:textColor="@color/primaryColor"
+                    android:layout_marginStart="16dp"/>
+
+                <TextView
+                    android:id="@+id/depth"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="--- M"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/white"
+                    android:layout_marginStart="4dp"/>
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.wear.widget.BoxInsetLayout>
+</LinearLayout> 

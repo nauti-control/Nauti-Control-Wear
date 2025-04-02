@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base application theme -->
+    <style name="NautiWearTheme" parent="android:Theme.DeviceDefault">
+        <item name="android:windowBackground">@color/backgroundDark</item>
+        <item name="android:colorPrimary">@color/primaryColor</item>
+        <item name="android:colorPrimaryDark">@color/primaryDarkColor</item>
+        <item name="android:colorAccent">@color/accentColor</item>
+        <item name="android:textColorPrimary">@color/textOnPrimary</item>
+    </style>
+    
+    <!-- Scan button style -->
+    <style name="ScanButton">
+        <item name="android:background">@drawable/rounded_button</item>
+        <item name="android:textColor">@color/textOnPrimary</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:paddingEnd">12dp</item>
+        <item name="android:paddingTop">4dp</item>
+        <item name="android:paddingBottom">4dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:backgroundTint">@color/primaryColor</item>
+        <item name="android:stateListAnimator">@null</item>
+    </style>
+    
+    <!-- Title text style -->
+    <style name="TitleText">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/textOnPrimary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+    
+    <!-- Device list item text style -->
+    <style name="DeviceText">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/textOnPrimary</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+    
+    <!-- Subtitle style -->
+    <style name="SubtitleText">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/textOnPrimary</item>
+        <item name="android:alpha">0.7</item>
+        <item name="android:fontFamily">sans-serif-light</item>
+    </style>
+</resources> 
