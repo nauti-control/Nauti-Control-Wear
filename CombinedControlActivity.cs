@@ -61,8 +61,7 @@ public class CombinedControlActivity : Activity, IDataDisplayVC
                 // Speed gauge (position 2)
                 if (_gaugeAdapter.GetGauge(2) is SpeedGaugeView speedGauge)
                 {
-                    // Use SOG (speed over ground) for the gauge
-                    speedGauge.UpdateValue((float)data.SOG);
+                    speedGauge.UpdateSpeedValues((float)data.SOG, (float)data.STW);
                 }
                 
                 // Compass gauge (position 3)
