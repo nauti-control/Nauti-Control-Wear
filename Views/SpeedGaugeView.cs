@@ -21,24 +21,16 @@ namespace Nauti_Control_Wear.Views
         private readonly Color _needleColor = Color.White;
         private readonly Color _textColor = Color.White;
         private readonly Color _markerColor = Color.White;
-        
-        // Button properties
-        private const float BUTTON_WIDTH_RATIO = 0.5f;
-        private const float BUTTON_HEIGHT_RATIO = 0.15f;
-        private const float BUTTON_PADDING = 20f;
-        private const float BUTTON_SPACING = 20f;
-        private RectF _buttonRect = new RectF();
-        private bool _isButtonPressed = false;
 
-        private readonly SpeedGaugeViewModel _viewModel;
+        private readonly SpeedGaugeVM _viewModel;
 
-        public SpeedGaugeView(Context context, SpeedGaugeViewModel viewModel) : base(context)
+        public SpeedGaugeView(Context context, SpeedGaugeVM viewModel) : base(context)
         {
             _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
             _viewModel.PropertyChanged += ViewModel_PropertyChanged;
         }
 
-        public SpeedGaugeView(Context context, IAttributeSet attrs, SpeedGaugeViewModel viewModel) : base(context, attrs)
+        public SpeedGaugeView(Context context, IAttributeSet attrs, SpeedGaugeVM viewModel) : base(context, attrs)
         {
             _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
             _viewModel.PropertyChanged += ViewModel_PropertyChanged;
@@ -46,10 +38,10 @@ namespace Nauti_Control_Wear.Views
 
         private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(SpeedGaugeViewModel.CurrentValue) ||
-                e.PropertyName == nameof(SpeedGaugeViewModel.MaxValue) ||
-                e.PropertyName == nameof(SpeedGaugeViewModel.Unit) ||
-                e.PropertyName == nameof(SpeedGaugeViewModel.Label))
+            if (e.PropertyName == nameof(SpeedGaugeVM.CurrentValue) ||
+                e.PropertyName == nameof(SpeedGaugeVM.MaxValue) ||
+                e.PropertyName == nameof(SpeedGaugeVM.Unit) ||
+                e.PropertyName == nameof(SpeedGaugeVM.Label))
             {
                 Invalidate();
             }
@@ -73,7 +65,7 @@ namespace Nauti_Control_Wear.Views
             DrawSpeedMarkers(canvas, centerX, centerY, radius);
             DrawSpeedNeedle(canvas, centerX, centerY, radius);
             DrawSpeedValue(canvas, centerX, centerY);
-            DrawSpeedTypeButton(canvas, centerX, centerY);
+            DrawModeButton(canvas, centerX, centerY, SPEED_TEXT_SIZE, _viewModel.ShowSpeedOverGround ? "SOG" : "STW");
         }
 
         private void DrawSpeedNeedle(Canvas canvas, float centerX, float centerY, float radius)
@@ -165,13 +157,13 @@ namespace Nauti_Control_Wear.Views
             canvas.DrawText(_viewModel.Unit, centerX, centerY + SPEED_TEXT_SIZE * 3.0f, _paint);
         }
 
-        private void DrawSpeedTypeButton(Canvas canvas, float centerX, float centerY)
+        protected override void DrawModeButton(Canvas canvas, float centerX, float centerY, float textSize, string buttonText)
         {
             float buttonWidth = Width * BUTTON_WIDTH_RATIO;
             float buttonHeight = Height * BUTTON_HEIGHT_RATIO;
             
             float buttonX = centerX;
-            float buttonY = centerY + SPEED_TEXT_SIZE * 4.0f + BUTTON_SPACING;
+            float buttonY = centerY + textSize * 4.0f + BUTTON_SPACING;
             
             _buttonRect = new RectF(
                 buttonX - buttonWidth / 2,
@@ -180,14 +172,13 @@ namespace Nauti_Control_Wear.Views
                 buttonY + buttonHeight / 2
             );
             
-            _paint.Color = _isButtonPressed ? Color.ParseColor("#404040") : Color.ParseColor("#808080");
+            _paint.Color = Color.Argb((byte)(_buttonAlpha * 255), 0, 0, 0);
             _paint.SetStyle(Paint.Style.Fill);
             canvas.DrawRoundRect(_buttonRect, BUTTON_PADDING, BUTTON_PADDING, _paint);
             
             _paint.Color = Color.White;
-            _paint.TextSize = SPEED_TEXT_SIZE * 2.0f;
-            string buttonText = _viewModel.ShowSpeedOverGround ? "STW" : "SOG";
-            canvas.DrawText(buttonText, buttonX, buttonY + SPEED_TEXT_SIZE * 0.6f, _paint);
+            _paint.TextSize = textSize * 2.0f;
+            canvas.DrawText(buttonText, buttonX, buttonY + textSize * 0.6f, _paint);
         }
 
         public override bool OnTouchEvent(MotionEvent? e)
@@ -199,6 +190,7 @@ namespace Nauti_Control_Wear.Views
                 if (_buttonRect != null && _buttonRect.Contains(e.GetX(), e.GetY()))
                 {
                     _isButtonPressed = true;
+                    _buttonAlpha = BUTTON_PRESSED_ALPHA;
                     Invalidate();
                     return true;
                 }
@@ -210,6 +202,7 @@ namespace Nauti_Control_Wear.Views
                     _viewModel.ShowSpeedOverGround = !_viewModel.ShowSpeedOverGround;
                 }
                 _isButtonPressed = false;
+                _buttonAlpha = BUTTON_NORMAL_ALPHA;
                 Invalidate();
                 return true;
             }

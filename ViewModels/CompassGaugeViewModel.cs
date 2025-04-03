@@ -1,19 +1,19 @@
-using System;
+using System.ComponentModel;
 
 namespace Nauti_Control_Wear.ViewModels
 {
-    public class CompassGaugeViewModel : BaseGaugeViewModel
+    public class CompassGaugeVM : BaseGaugeVM
     {
-        private const float MAX_DEGREES = 360f;
+        private const float MAX_ANGLE = 360f;
         private float _heading;
         private float _courseOverGround;
-        private bool _showHeading = true;
+        private bool _showHeading;
 
-        public CompassGaugeViewModel()
+        public CompassGaugeVM()
         {
-            MaxValue = MAX_DEGREES;
+            MaxValue = MAX_ANGLE;
             Unit = "°";
-            Label = "Heading";
+            Label = "Compass";
         }
 
         public float Heading
@@ -23,11 +23,12 @@ namespace Nauti_Control_Wear.ViewModels
             {
                 if (_heading != value)
                 {
-                    _heading = NormalizeAngle(value);
+                    _heading = value;
                     if (_showHeading)
                     {
-                        UpdateValue(value);
+                        base.UpdateValue(value);
                     }
+                    OnPropertyChanged();
                 }
             }
         }
@@ -39,11 +40,12 @@ namespace Nauti_Control_Wear.ViewModels
             {
                 if (_courseOverGround != value)
                 {
-                    _courseOverGround = NormalizeAngle(value);
+                    _courseOverGround = value;
                     if (!_showHeading)
                     {
-                        UpdateValue(value);
+                        base.UpdateValue(value);
                     }
+                    OnPropertyChanged();
                 }
             }
         }
@@ -56,7 +58,8 @@ namespace Nauti_Control_Wear.ViewModels
                 if (_showHeading != value)
                 {
                     _showHeading = value;
-                    UpdateValue(value ? Heading : CourseOverGround);
+                    base.UpdateValue(value ? Heading : CourseOverGround);
+                    OnPropertyChanged();
                 }
             }
         }
@@ -65,14 +68,7 @@ namespace Nauti_Control_Wear.ViewModels
         {
             Heading = heading;
             CourseOverGround = cog;
-            UpdateValue(_showHeading ? heading : cog);
-        }
-
-        private float NormalizeAngle(float angle)
-        {
-            while (angle < 0) angle += 360;
-            while (angle >= 360) angle -= 360;
-            return angle;
+            base.UpdateValue(_showHeading ? heading : cog);
         }
     }
 } 

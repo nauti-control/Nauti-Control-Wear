@@ -1,15 +1,17 @@
-using System;
+using System.ComponentModel;
 
 namespace Nauti_Control_Wear.ViewModels
 {
-    public class WindGaugeViewModel : BaseGaugeViewModel
+    public class WindGaugeVM : BaseGaugeVM
     {
         private const float MAX_WIND_SPEED = 50f;
+        private const float MAX_WIND_ANGLE = 360f;
         private float _windAngle;
         private float _windSpeed;
-        private const float CLOSE_HAULED_ANGLE = 40f;
+        private bool _isPortTack;
+        private bool _isStarboardTack;
 
-        public WindGaugeViewModel()
+        public WindGaugeVM()
         {
             MaxValue = MAX_WIND_SPEED;
             Unit = "kts";
@@ -23,7 +25,9 @@ namespace Nauti_Control_Wear.ViewModels
             {
                 if (_windAngle != value)
                 {
-                    _windAngle = NormalizeAngle(value);
+                    _windAngle = value;
+                    UpdateTackStatus();
+                    OnPropertyChanged();
                 }
             }
         }
@@ -36,26 +40,55 @@ namespace Nauti_Control_Wear.ViewModels
                 if (_windSpeed != value)
                 {
                     _windSpeed = value;
-                    UpdateValue(value);
+                    OnPropertyChanged();
                 }
             }
         }
 
-        public bool IsPortTack => WindAngle > 320 || WindAngle < 0;
-        public bool IsStarboardTack => WindAngle > 0 && WindAngle < 40;
-        public bool IsCloseHauled => IsPortTack || IsStarboardTack;
-
-        public void UpdateWindData(float angle, float speed)
+        public bool IsPortTack
         {
-            WindAngle = angle;
-            WindSpeed = speed;
+            get => _isPortTack;
+            private set
+            {
+                if (_isPortTack != value)
+                {
+                    _isPortTack = value;
+                    OnPropertyChanged();
+                }
+            }
         }
 
-        private float NormalizeAngle(float angle)
+        public bool IsStarboardTack
         {
-            while (angle < 0) angle += 360;
-            while (angle >= 360) angle -= 360;
-            return angle;
+            get => _isStarboardTack;
+            private set
+            {
+                if (_isStarboardTack != value)
+                {
+                    _isStarboardTack = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public void UpdateWindData(float windAngle, float windSpeed)
+        {
+            WindAngle = windAngle;
+            WindSpeed = windSpeed;
+            base.UpdateValue(windSpeed);
+        }
+
+        private void UpdateTackStatus()
+        {
+            // Normalize angle to 0-360 range
+            float normalizedAngle = WindAngle % 360f;
+            if (normalizedAngle < 0) normalizedAngle += 360f;
+
+            // Port tack: wind angle between 320° and 0°
+            IsPortTack = normalizedAngle >= 320f || normalizedAngle <= 40f;
+
+            // Starboard tack: wind angle between 0° and 40°
+            IsStarboardTack = normalizedAngle >= 0f && normalizedAngle <= 40f;
         }
     }
 } 

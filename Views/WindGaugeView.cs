@@ -22,15 +22,15 @@ namespace Nauti_Control_Wear.Views
         private readonly Color _portColor = Color.ParseColor("#FF0000");      // Red (left side, 320-0)
         private readonly Color _starboardColor = Color.ParseColor("#00FF00");  // Green (right side, 0-40)
 
-        private readonly WindGaugeViewModel _viewModel;
+        private readonly WindGaugeVM _viewModel;
 
-        public WindGaugeView(Context context, WindGaugeViewModel viewModel) : base(context)
+        public WindGaugeView(Context context, WindGaugeVM viewModel) : base(context)
         {
             _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
             _viewModel.PropertyChanged += ViewModel_PropertyChanged;
         }
 
-        public WindGaugeView(Context context, IAttributeSet attrs, WindGaugeViewModel viewModel) : base(context, attrs)
+        public WindGaugeView(Context context, IAttributeSet attrs, WindGaugeVM viewModel) : base(context, attrs)
         {
             _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
             _viewModel.PropertyChanged += ViewModel_PropertyChanged;
@@ -38,12 +38,12 @@ namespace Nauti_Control_Wear.Views
 
         private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(WindGaugeViewModel.CurrentValue) ||
-                e.PropertyName == nameof(WindGaugeViewModel.MaxValue) ||
-                e.PropertyName == nameof(WindGaugeViewModel.Unit) ||
-                e.PropertyName == nameof(WindGaugeViewModel.Label) ||
-                e.PropertyName == nameof(WindGaugeViewModel.WindAngle) ||
-                e.PropertyName == nameof(WindGaugeViewModel.WindSpeed))
+            if (e.PropertyName == nameof(WindGaugeVM.CurrentValue) ||
+                e.PropertyName == nameof(WindGaugeVM.MaxValue) ||
+                e.PropertyName == nameof(WindGaugeVM.Unit) ||
+                e.PropertyName == nameof(WindGaugeVM.Label) ||
+                e.PropertyName == nameof(WindGaugeVM.WindAngle) ||
+                e.PropertyName == nameof(WindGaugeVM.WindSpeed))
             {
                 Invalidate();
             }

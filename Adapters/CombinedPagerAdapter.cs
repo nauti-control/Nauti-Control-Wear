@@ -17,20 +17,20 @@ public class CombinedPagerAdapter : RecyclerView.Adapter
     private const int PAGE_COUNT = 5; // Command view + 4 gauges
 
     // View models for each gauge
-    private readonly WindGaugeViewModel _windGaugeVM;
-    private readonly DepthGaugeViewModel _depthGaugeVM;
-    private readonly SpeedGaugeViewModel _speedGaugeVM;
-    private readonly CompassGaugeViewModel _compassGaugeVM;
+    private readonly WindGaugeVM _windGaugeVM;
+    private readonly DepthGaugeVM _depthGaugeVM;
+    private readonly SpeedGaugeVM _speedGaugeVM;
+    private readonly CompassGaugeVM _compassGaugeVM;
 
     public CombinedPagerAdapter(CombinedControlActivity activity)
     {
         _activity = activity ?? throw new ArgumentNullException(nameof(activity));
         
         // Initialize view models
-        _windGaugeVM = new WindGaugeViewModel();
-        _depthGaugeVM = new DepthGaugeViewModel();
-        _speedGaugeVM = new SpeedGaugeViewModel();
-        _compassGaugeVM = new CompassGaugeViewModel();
+        _windGaugeVM = new WindGaugeVM();
+        _depthGaugeVM = new DepthGaugeVM();
+        _speedGaugeVM = new SpeedGaugeVM();
+        _compassGaugeVM = new CompassGaugeVM();
     }
 
     public override int ItemCount => PAGE_COUNT;

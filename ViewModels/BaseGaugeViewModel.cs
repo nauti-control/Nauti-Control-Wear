@@ -4,12 +4,14 @@ using System.Runtime.CompilerServices;
 
 namespace Nauti_Control_Wear.ViewModels
 {
-    public abstract class BaseGaugeViewModel : INotifyPropertyChanged
+    public abstract class BaseGaugeVM : INotifyPropertyChanged
     {
-        protected float _currentValue;
-        protected float _maxValue;
-        protected string _unit = string.Empty;
-        protected string _label = string.Empty;
+        private float _currentValue;
+        private float _maxValue;
+        private string _unit = string.Empty;
+        private string _label = string.Empty;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         public float CurrentValue
         {
@@ -62,8 +64,6 @@ namespace Nauti_Control_Wear.ViewModels
                 }
             }
         }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
 
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {

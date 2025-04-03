@@ -1,15 +1,15 @@
-using System;
+using System.ComponentModel;
 
 namespace Nauti_Control_Wear.ViewModels
 {
-    public class SpeedGaugeViewModel : BaseGaugeViewModel
+    public class SpeedGaugeVM : BaseGaugeVM
     {
-        private const float MAX_SPEED = 30f; // 30 knots max speed
+        private const float MAX_SPEED = 20f;
         private float _speedOverGround;
         private float _speedThroughWater;
-        private bool _showSpeedOverGround = true;
+        private bool _showSpeedOverGround;
 
-        public SpeedGaugeViewModel()
+        public SpeedGaugeVM()
         {
             MaxValue = MAX_SPEED;
             Unit = "kts";
@@ -26,8 +26,9 @@ namespace Nauti_Control_Wear.ViewModels
                     _speedOverGround = value;
                     if (_showSpeedOverGround)
                     {
-                        UpdateValue(value);
+                        base.UpdateValue(value);
                     }
+                    OnPropertyChanged();
                 }
             }
         }
@@ -42,8 +43,9 @@ namespace Nauti_Control_Wear.ViewModels
                     _speedThroughWater = value;
                     if (!_showSpeedOverGround)
                     {
-                        UpdateValue(value);
+                        base.UpdateValue(value);
                     }
+                    OnPropertyChanged();
                 }
             }
         }
@@ -56,7 +58,8 @@ namespace Nauti_Control_Wear.ViewModels
                 if (_showSpeedOverGround != value)
                 {
                     _showSpeedOverGround = value;
-                    UpdateValue(value ? SpeedOverGround : SpeedThroughWater);
+                    base.UpdateValue(value ? SpeedOverGround : SpeedThroughWater);
+                    OnPropertyChanged();
                 }
             }
         }
@@ -65,7 +68,7 @@ namespace Nauti_Control_Wear.ViewModels
         {
             SpeedOverGround = sog;
             SpeedThroughWater = stw;
-            UpdateValue(_showSpeedOverGround ? sog : stw);
+            base.UpdateValue(_showSpeedOverGround ? sog : stw);
         }
     }
 } 

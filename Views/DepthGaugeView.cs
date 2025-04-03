@@ -23,15 +23,15 @@ namespace Nauti_Control_Wear.Views
         private readonly Color _markerColor = Color.White;
         private readonly Color _warningColor = Color.ParseColor("#FF0000");
 
-        private readonly DepthGaugeViewModel _viewModel;
+        private readonly DepthGaugeVM _viewModel;
 
-        public DepthGaugeView(Context context, DepthGaugeViewModel viewModel) : base(context)
+        public DepthGaugeView(Context context, DepthGaugeVM viewModel) : base(context)
         {
             _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
             _viewModel.PropertyChanged += ViewModel_PropertyChanged;
         }
 
-        public DepthGaugeView(Context context, IAttributeSet attrs, DepthGaugeViewModel viewModel) : base(context, attrs)
+        public DepthGaugeView(Context context, IAttributeSet attrs, DepthGaugeVM viewModel) : base(context, attrs)
         {
             _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
             _viewModel.PropertyChanged += ViewModel_PropertyChanged;
@@ -39,11 +39,11 @@ namespace Nauti_Control_Wear.Views
 
         private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(DepthGaugeViewModel.CurrentValue) ||
-                e.PropertyName == nameof(DepthGaugeViewModel.MaxValue) ||
-                e.PropertyName == nameof(DepthGaugeViewModel.Unit) ||
-                e.PropertyName == nameof(DepthGaugeViewModel.Label) ||
-                e.PropertyName == nameof(DepthGaugeViewModel.FlashWarning))
+            if (e.PropertyName == nameof(DepthGaugeVM.CurrentValue) ||
+                e.PropertyName == nameof(DepthGaugeVM.MaxValue) ||
+                e.PropertyName == nameof(DepthGaugeVM.Unit) ||
+                e.PropertyName == nameof(DepthGaugeVM.Label) ||
+                e.PropertyName == nameof(DepthGaugeVM.FlashWarning))
             {
                 Invalidate();
             }

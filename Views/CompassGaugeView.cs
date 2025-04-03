@@ -22,25 +22,17 @@ namespace Nauti_Control_Wear.Views
         private readonly Color _cogColor = Color.Green;
         private readonly Color _ticksColor = Color.White;
         private readonly Color _textColor = Color.White;
-        
-        // Button properties
-        private const float BUTTON_WIDTH_RATIO = 0.5f;
-        private const float BUTTON_HEIGHT_RATIO = 0.15f;
-        private const float BUTTON_PADDING = 20f;
-        private const float BUTTON_SPACING = 20f;
-        private RectF _buttonRect = new RectF();
-        private bool _isButtonPressed = false;
 
-        private readonly CompassGaugeViewModel _viewModel;
+        private readonly CompassGaugeVM _viewModel;
 
-        public CompassGaugeView(Context context, CompassGaugeViewModel viewModel) : base(context)
+        public CompassGaugeView(Context context, CompassGaugeVM viewModel) : base(context)
         {
             _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
             _viewModel.PropertyChanged += ViewModel_PropertyChanged;
             CreateShipShape();
         }
 
-        public CompassGaugeView(Context context, IAttributeSet attrs, CompassGaugeViewModel viewModel) : base(context, attrs)
+        public CompassGaugeView(Context context, IAttributeSet attrs, CompassGaugeVM viewModel) : base(context, attrs)
         {
             _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
             _viewModel.PropertyChanged += ViewModel_PropertyChanged;
@@ -49,12 +41,12 @@ namespace Nauti_Control_Wear.Views
 
         private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(CompassGaugeViewModel.CurrentValue) ||
-                e.PropertyName == nameof(CompassGaugeViewModel.MaxValue) ||
-                e.PropertyName == nameof(CompassGaugeViewModel.Unit) ||
-                e.PropertyName == nameof(CompassGaugeViewModel.Label) ||
-                e.PropertyName == nameof(CompassGaugeViewModel.Heading) ||
-                e.PropertyName == nameof(CompassGaugeViewModel.CourseOverGround))
+            if (e.PropertyName == nameof(CompassGaugeVM.CurrentValue) ||
+                e.PropertyName == nameof(CompassGaugeVM.MaxValue) ||
+                e.PropertyName == nameof(CompassGaugeVM.Unit) ||
+                e.PropertyName == nameof(CompassGaugeVM.Label) ||
+                e.PropertyName == nameof(CompassGaugeVM.Heading) ||
+                e.PropertyName == nameof(CompassGaugeVM.CourseOverGround))
             {
                 Invalidate();
             }
@@ -88,7 +80,7 @@ namespace Nauti_Control_Wear.Views
             DrawCardinalPoints(canvas, centerX, centerY, radius);
             DrawHeadingIndicator(canvas, centerX, centerY, radius);
             DrawValueText(canvas, centerX, centerY);
-            DrawCompassTypeButton(canvas, centerX, centerY);
+            DrawModeButton(canvas, centerX, centerY, COMPASS_TEXT_SIZE, _viewModel.ShowHeading ? "HDG" : "COG");
         }
 
         private void DrawCompassRose(Canvas canvas, float centerX, float centerY, float radius)
@@ -190,57 +182,6 @@ namespace Nauti_Control_Wear.Views
             
             _compassPaint.TextSize = COMPASS_TEXT_SIZE * 1.8f;
             canvas.DrawText(_viewModel.Unit, centerX, centerY + COMPASS_TEXT_SIZE * 3.0f, _compassPaint);
-        }
-
-        private void DrawCompassTypeButton(Canvas canvas, float centerX, float centerY)
-        {
-            float buttonWidth = Width * BUTTON_WIDTH_RATIO;
-            float buttonHeight = Height * BUTTON_HEIGHT_RATIO;
-            
-            float buttonX = centerX;
-            float buttonY = centerY + COMPASS_TEXT_SIZE * 4.0f + BUTTON_SPACING;
-            
-            _buttonRect = new RectF(
-                buttonX - buttonWidth / 2,
-                buttonY - buttonHeight / 2,
-                buttonX + buttonWidth / 2,
-                buttonY + buttonHeight / 2
-            );
-            
-            _compassPaint.Color = _isButtonPressed ? Color.ParseColor("#404040") : Color.ParseColor("#808080");
-            _compassPaint.SetStyle(Paint.Style.Fill);
-            canvas.DrawRoundRect(_buttonRect, BUTTON_PADDING, BUTTON_PADDING, _compassPaint);
-            
-            _compassPaint.Color = Color.White;
-            _compassPaint.TextSize = COMPASS_TEXT_SIZE * 2.0f;
-            string buttonText = _viewModel.ShowHeading ? "COG" : "HDG";
-            canvas.DrawText(buttonText, buttonX, buttonY + COMPASS_TEXT_SIZE * 0.6f, _compassPaint);
-        }
-
-        public override bool OnTouchEvent(MotionEvent? e)
-        {
-            if (e == null) return false;
-            
-            if (e.Action == MotionEventActions.Down)
-            {
-                if (_buttonRect != null && _buttonRect.Contains(e.GetX(), e.GetY()))
-                {
-                    _isButtonPressed = true;
-                    Invalidate();
-                    return true;
-                }
-            }
-            else if (e.Action == MotionEventActions.Up)
-            {
-                if (_isButtonPressed && _buttonRect != null && _buttonRect.Contains(e.GetX(), e.GetY()))
-                {
-                    _viewModel.ShowHeading = !_viewModel.ShowHeading;
-                }
-                _isButtonPressed = false;
-                Invalidate();
-                return true;
-            }
-            return base.OnTouchEvent(e);
         }
 
         protected override void Dispose(bool disposing)
