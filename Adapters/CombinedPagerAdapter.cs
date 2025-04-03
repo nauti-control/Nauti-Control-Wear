@@ -93,12 +93,6 @@ public class CombinedPagerAdapter : RecyclerView.Adapter
         return inflater.Inflate(Resource.Layout.command_content, null);
     }
 
-    public View? GetDataDisplayView()
-    {
-        var inflater = LayoutInflater.From(_activity) ?? throw new InvalidOperationException("Could not get LayoutInflater");
-        return inflater.Inflate(Resource.Layout.data_display_content, null);
-    }
-
     private class ViewHolder : RecyclerView.ViewHolder
     {
         public ViewHolder(View itemView) : base(itemView)

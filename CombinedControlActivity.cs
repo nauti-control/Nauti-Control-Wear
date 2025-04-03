@@ -22,14 +22,6 @@ public class CombinedControlActivity : Activity, IDataDisplayVC
     
     // Data display related fields
     private DataDisplayVM? _dataDisplayVM;
-    private GaugePagerAdapter? _gaugeAdapter;
-    private ViewPager2? _gaugePager;
-    private TextView? _windSpeed;
-    private TextView? _windAngle;
-    private TextView? _depth;
-    private TextView? _sog;
-    private TextView? _stw;
-    private TextView? _hdg;
     
     // Command related fields
     private CommandActivityVM? _commandVM;
@@ -44,41 +36,33 @@ public class CombinedControlActivity : Activity, IDataDisplayVC
     {
         RunOnUiThread(() =>
         {
-            if (_gaugeAdapter != null)
+            if (_pagerAdapter != null)
             {
-                // Wind gauge (position 0)
-                if (_gaugeAdapter.GetGauge(0) is WindGaugeView windGauge)
+                // Wind gauge (position 1)
+                if (_viewPager?.GetChildAt(1) is WindGaugeView windGauge)
                 {
                     windGauge.UpdateWindData((float)data.AWA, (float)data.AWS);
                 }
                 
-                // Depth gauge (position 1)
-                if (_gaugeAdapter.GetGauge(1) is DepthGaugeView depthGauge)
+                // Depth gauge (position 2)
+                if (_viewPager?.GetChildAt(2) is DepthGaugeView depthGauge)
                 {
                     depthGauge.UpdateValue((float)data.DPT);
                 }
                 
-                // Speed gauge (position 2)
-                if (_gaugeAdapter.GetGauge(2) is SpeedGaugeView speedGauge)
+                // Speed gauge (position 3)
+                if (_viewPager?.GetChildAt(3) is SpeedGaugeView speedGauge)
                 {
                     speedGauge.UpdateSpeedValues((float)data.SOG, (float)data.STW);
                 }
                 
-                // Compass gauge (position 3)
-                if (_gaugeAdapter.GetGauge(3) is CompassGaugeView compassGauge)
+                // Compass gauge (position 4)
+                if (_viewPager?.GetChildAt(4) is CompassGaugeView compassGauge)
                 {
                     // Update with heading and course over ground
                     compassGauge.UpdateCompassData((float)data.HDG, (float)data.COG);
                 }
             }
-
-            // Update text displays
-            if (_windAngle != null) _windAngle.Text = $"{data.AWA:F1}°";
-            if (_windSpeed != null) _windSpeed.Text = $"{data.AWS:F1} kts";
-            if (_depth != null) _depth.Text = $"{data.DPT:F1} M";
-            if (_sog != null) _sog.Text = $"{data.SOG:F1} kts";
-            if (_stw != null) _stw.Text = $"{data.STW:F1} kts";
-            if (_hdg != null) _hdg.Text = $"{data.HDG:F1}°";
         });
     }
 
@@ -102,7 +86,6 @@ public class CombinedControlActivity : Activity, IDataDisplayVC
         SetContentView(Resource.Layout.combined_control);
         InitializeUI();
         SetupViewPager();
-        SetupDataDisplay();
         SetupCommandView();
     }
 
@@ -130,37 +113,6 @@ public class CombinedControlActivity : Activity, IDataDisplayVC
         
         // Set initial position to command view
         _viewPager.CurrentItem = 0;
-    }
-
-    /// <summary>
-    /// Setup Data Display View
-    /// </summary>
-    private void SetupDataDisplay()
-    {
-        View? dataView = _pagerAdapter?.GetDataDisplayView();
-        if (dataView == null) return;
-
-        // Get references to views in the data display layout
-        _gaugePager = dataView.FindViewById<ViewPager2>(Resource.Id.gauge_pager);
-        _windSpeed = dataView.FindViewById<TextView>(Resource.Id.windspeed);
-        _windAngle = dataView.FindViewById<TextView>(Resource.Id.windangle);
-        _depth = dataView.FindViewById<TextView>(Resource.Id.depth);
-        _sog = dataView.FindViewById<TextView>(Resource.Id.sog);
-        _stw = dataView.FindViewById<TextView>(Resource.Id.stw);
-        _hdg = dataView.FindViewById<TextView>(Resource.Id.hdg);
-
-        if (_gaugePager != null)
-        {
-            // Setup ViewPager with gauge adapter
-            _gaugeAdapter = new GaugePagerAdapter(this);
-            _gaugePager.Adapter = _gaugeAdapter;
-            
-            // Set page transformer for smooth animations
-            _gaugePager.SetPageTransformer(new GaugePageTransformer());
-            
-            // Set offscreen page limit to keep adjacent pages in memory
-            _gaugePager.OffscreenPageLimit = 1;
-        }
 
         // Initialize data display viewmodel
         _dataDisplayVM = new DataDisplayVM(this);
@@ -239,14 +191,7 @@ public class CombinedControlActivity : Activity, IDataDisplayVC
             BluetoothDeviceVM.ConnectedInstance.Disconnect();
         }
         
-        // Clean up gauge pager
-        if (_gaugePager != null)
-        {
-            _gaugePager.Adapter = null;
-        }
-        
         // Clean up adapters
-        _gaugeAdapter?.Dispose();
         _commandAdapter?.Dispose();
         _pagerAdapter?.Dispose();
     }
