@@ -4,12 +4,12 @@ using Android.Util;
 using Android.Views;
 using System;
 using Path = Android.Graphics.Path;
+using Nauti_Control_Wear.ViewModels;
 
 namespace Nauti_Control_Wear.Views
 {
     public class DepthGaugeView : BaseGaugeView
     {
-        private const float MAX_DEPTH = 100f; // 100 meters max depth
         private const float ARROW_LENGTH = 0.8f;
         private const float ARROW_HEAD_LENGTH = 0.2f;
         private const float ARROW_HEAD_ANGLE = 30f;
@@ -21,29 +21,32 @@ namespace Nauti_Control_Wear.Views
         private readonly Color _needleColor = Color.White;
         private readonly Color _textColor = Color.White;
         private readonly Color _markerColor = Color.White;
-        private readonly Color _warningColor = Color.ParseColor("#FF0000");  // Red for warnings
+        private readonly Color _warningColor = Color.ParseColor("#FF0000");
 
-        // Warning thresholds
-        private const float CRITICAL_DEPTH = 3f; // 3 meters critical warning
-        private const float SHALLOW_WATER_THRESHOLD = 10f; // 10 meters shallow water warning
-        
-        // Animation for shallow water alerts
-        private bool _flashWarning = false;
-        private long _lastFlashTime = 0;
-        private const long FLASH_INTERVAL = 500; // Flash every 500ms
+        private readonly DepthGaugeViewModel _viewModel;
 
-        public DepthGaugeView(Context context) : base(context)
+        public DepthGaugeView(Context context, DepthGaugeViewModel viewModel) : base(context)
         {
-            _maxValue = MAX_DEPTH;
-            _unit = "M";
-            _label = "Depth";
+            _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
+            _viewModel.PropertyChanged += ViewModel_PropertyChanged;
         }
 
-        public DepthGaugeView(Context context, IAttributeSet attrs) : base(context, attrs)
+        public DepthGaugeView(Context context, IAttributeSet attrs, DepthGaugeViewModel viewModel) : base(context, attrs)
         {
-            _maxValue = MAX_DEPTH;
-            _unit = "M";
-            _label = "Depth";
+            _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
+            _viewModel.PropertyChanged += ViewModel_PropertyChanged;
+        }
+
+        private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(DepthGaugeViewModel.CurrentValue) ||
+                e.PropertyName == nameof(DepthGaugeViewModel.MaxValue) ||
+                e.PropertyName == nameof(DepthGaugeViewModel.Unit) ||
+                e.PropertyName == nameof(DepthGaugeViewModel.Label) ||
+                e.PropertyName == nameof(DepthGaugeViewModel.FlashWarning))
+            {
+                Invalidate();
+            }
         }
 
         protected override void Initialize()
@@ -51,23 +54,6 @@ namespace Nauti_Control_Wear.Views
             base.Initialize();
             _paint.TextSize = DEPTH_TEXT_SIZE;
             _paint.TextAlign = Paint.Align.Center;
-        }
-
-        public override void UpdateValue(float value)
-        {
-            base.UpdateValue(value);
-            
-            // Flash warning animation for shallow water
-            if (value <= CRITICAL_DEPTH)
-            {
-                long currentTime = Java.Lang.JavaSystem.CurrentTimeMillis();
-                if (currentTime - _lastFlashTime > FLASH_INTERVAL)
-                {
-                    _flashWarning = !_flashWarning;
-                    _lastFlashTime = currentTime;
-                    PostInvalidateOnAnimation();
-                }
-            }
         }
 
         protected override void OnDraw(Canvas canvas)
@@ -82,15 +68,14 @@ namespace Nauti_Control_Wear.Views
             DrawDepthNeedle(canvas, centerX, centerY, radius);
             DrawDepthValue(canvas, centerX, centerY);
 
-            // Draw warning if in shallow water
-            if (_currentValue <= CRITICAL_DEPTH)
+            if (_viewModel.IsCriticalDepth)
             {
-                if (_flashWarning)
+                if (_viewModel.FlashWarning)
                 {
                     DrawWarningText(canvas, centerX, centerY, "DANGER! VERY SHALLOW!", _warningColor, radius);
                 }
             }
-            else if (_currentValue < SHALLOW_WATER_THRESHOLD)
+            else if (_viewModel.IsShallowWater)
             {
                 DrawWarningText(canvas, centerX, centerY, "SHALLOW WATER!", _warningColor, radius);
             }
@@ -103,20 +88,17 @@ namespace Nauti_Control_Wear.Views
             _paint.SetStyle(Paint.Style.Stroke);
 
             using var path = new Path();
-            float angle = (_currentValue / _maxValue) * 360f;
+            float angle = (_viewModel.CurrentValue / _viewModel.MaxValue) * 360f;
             float arrowLength = radius * ARROW_LENGTH;
             float headLength = radius * ARROW_HEAD_LENGTH;
 
-            // Calculate arrow points (0° at top)
             float radians = angle * (float)Math.PI / 180f;
             float endX = centerX + arrowLength * (float)Math.Sin(radians);
             float endY = centerY - arrowLength * (float)Math.Cos(radians);
 
-            // Draw arrow shaft
             path.MoveTo(centerX, centerY);
             path.LineTo(endX, endY);
 
-            // Calculate and draw arrow head
             float headAngle1 = (angle + ARROW_HEAD_ANGLE) * (float)Math.PI / 180f;
             float headAngle2 = (angle - ARROW_HEAD_ANGLE) * (float)Math.PI / 180f;
 
@@ -140,14 +122,12 @@ namespace Nauti_Control_Wear.Views
             _paint.SetStyle(Paint.Style.Stroke);
             _paint.TextSize = DEPTH_TEXT_SIZE * 0.6f;
 
-            // Draw markers every 20 meters
-            for (int depth = 0; depth <= MAX_DEPTH; depth += 20)
+            for (int depth = 0; depth <= _viewModel.MaxValue; depth += 20)
             {
-                float angle = (depth / _maxValue) * 360f;
+                float angle = (depth / _viewModel.MaxValue) * 360f;
                 float radians = angle * (float)Math.PI / 180f;
                 float markerLength = radius * MARKER_LENGTH;
                 
-                // Draw marker line
                 float startX = centerX + (radius - markerLength) * (float)Math.Sin(radians);
                 float startY = centerY - (radius - markerLength) * (float)Math.Cos(radians);
                 float endX = centerX + radius * (float)Math.Sin(radians);
@@ -155,7 +135,6 @@ namespace Nauti_Control_Wear.Views
                 
                 canvas.DrawLine(startX, startY, endX, endY, _paint);
 
-                // Draw depth text
                 float textX = centerX + (radius + 20) * (float)Math.Sin(radians);
                 float textY = centerY - (radius + 20) * (float)Math.Cos(radians) + DEPTH_TEXT_SIZE * 0.3f;
                 canvas.DrawText($"{depth}", textX, textY, _paint);
@@ -164,19 +143,16 @@ namespace Nauti_Control_Wear.Views
 
         private void DrawDepthValue(Canvas canvas, float centerX, float centerY)
         {
-            // Calculate text sizes and positions first
             _paint.TextSize = DEPTH_TEXT_SIZE * 3.75f;
-            float depthWidth = _paint.MeasureText($"{_currentValue:F1}");
+            float depthWidth = _paint.MeasureText($"{_viewModel.CurrentValue:F1}");
             _paint.TextSize = DEPTH_TEXT_SIZE * 1.8f;
-            float unitWidth = _paint.MeasureText(_unit);
+            float unitWidth = _paint.MeasureText(_viewModel.Unit);
             
-            // Calculate box dimensions with padding
             float padding = DEPTH_TEXT_SIZE * 0.75f;
             float boxWidth = Math.Max(depthWidth, unitWidth) + padding * 2;
             float boxHeight = DEPTH_TEXT_SIZE * 6.0f + padding * 2;
             
-            // Draw semi-transparent background box
-            _paint.Color = Color.ParseColor("#80000000"); // Black with 50% alpha
+            _paint.Color = Color.ParseColor("#80000000");
             _paint.SetStyle(Paint.Style.Fill);
             RectF boxRect = new RectF(
                 centerX - boxWidth / 2,
@@ -186,14 +162,12 @@ namespace Nauti_Control_Wear.Views
             );
             canvas.DrawRoundRect(boxRect, DEPTH_TEXT_SIZE * 0.75f, DEPTH_TEXT_SIZE * 0.75f, _paint);
             
-            // Draw depth value text
             _paint.Color = _textColor;
             _paint.TextSize = DEPTH_TEXT_SIZE * 3.75f;
-            canvas.DrawText($"{_currentValue:F1}", centerX, centerY, _paint);
+            canvas.DrawText($"{_viewModel.CurrentValue:F1}", centerX, centerY, _paint);
             
-            // Draw unit text
             _paint.TextSize = DEPTH_TEXT_SIZE * 1.8f;
-            canvas.DrawText(_unit, centerX, centerY + DEPTH_TEXT_SIZE * 3.0f, _paint);
+            canvas.DrawText(_viewModel.Unit, centerX, centerY + DEPTH_TEXT_SIZE * 3.0f, _paint);
         }
 
         private void DrawWarningText(Canvas canvas, float centerX, float centerY, string text, Color color, float radius)
@@ -202,6 +176,15 @@ namespace Nauti_Control_Wear.Views
             _paint.TextSize = DEPTH_TEXT_SIZE;
             _paint.SetStyle(Paint.Style.Fill);
             canvas.DrawText(text, centerX, centerY - radius / 2, _paint);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _viewModel.PropertyChanged -= ViewModel_PropertyChanged;
+            }
+            base.Dispose(disposing);
         }
     }
 } 

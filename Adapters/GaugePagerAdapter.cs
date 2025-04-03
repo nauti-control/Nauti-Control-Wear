@@ -1,6 +1,8 @@
 using Android.Content;
 using Android.Views;
 using AndroidX.RecyclerView.Widget;
+using Nauti_Control_Wear.Models;
+using Nauti_Control_Wear.ViewModels;
 using Nauti_Control_Wear.Views;
 
 namespace Nauti_Control_Wear.Adapters;
@@ -8,65 +10,62 @@ namespace Nauti_Control_Wear.Adapters;
 public class GaugePagerAdapter : RecyclerView.Adapter
 {
     private readonly Context _context;
-    private const int PAGE_COUNT = 4; // Wind, Depth, Speed, Compass
+    private readonly WindGaugeViewModel _windGaugeVM;
+    private readonly DepthGaugeViewModel _depthGaugeVM;
+    private readonly SpeedGaugeViewModel _speedGaugeVM;
+    private readonly CompassGaugeViewModel _compassGaugeVM;
 
     public GaugePagerAdapter(Context context)
     {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
+        _context = context;
+        _windGaugeVM = new WindGaugeViewModel();
+        _depthGaugeVM = new DepthGaugeViewModel();
+        _speedGaugeVM = new SpeedGaugeViewModel();
+        _compassGaugeVM = new CompassGaugeViewModel();
     }
-
-    public override int ItemCount => PAGE_COUNT;
 
     public override RecyclerView.ViewHolder OnCreateViewHolder(ViewGroup parent, int viewType)
     {
-        if (parent.Context == null) throw new InvalidOperationException("Parent context is null");
-
         View view;
         switch (viewType)
         {
-            case 0: // Wind gauge
-                view = new WindGaugeView(_context);
+            case 0: // Wind Gauge
+                view = new WindGaugeView(_context, _windGaugeVM);
                 break;
-            case 1: // Depth gauge
-                view = new DepthGaugeView(_context);
+            case 1: // Depth Gauge
+                view = new DepthGaugeView(_context, _depthGaugeVM);
                 break;
-            case 2: // Speed gauge
-                view = new SpeedGaugeView(_context);
+            case 2: // Speed Gauge
+                view = new SpeedGaugeView(_context, _speedGaugeVM);
                 break;
-            case 3: // Compass gauge
-                view = new CompassGaugeView(_context);
+            case 3: // Compass Gauge
+                view = new CompassGaugeView(_context, _compassGaugeVM);
                 break;
             default:
-                throw new ArgumentException($"Invalid view type: {viewType}");
+                throw new ArgumentException("Invalid view type");
         }
-
-        view.LayoutParameters = new ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.MatchParent,
-            ViewGroup.LayoutParams.MatchParent);
 
         return new ViewHolder(view);
     }
 
     public override void OnBindViewHolder(RecyclerView.ViewHolder holder, int position)
     {
-        // No binding needed for gauge views
+        // No binding needed as the views are created with their view models
     }
+
+    public override int ItemCount => 4;
 
     public override int GetItemViewType(int position)
     {
         return position;
     }
 
-    public BaseGaugeView? GetGauge(int position)
+    public void UpdateGaugeData(BoatData data)
     {
-        return position switch
-        {
-            0 => new WindGaugeView(_context),
-            1 => new DepthGaugeView(_context),
-            2 => new SpeedGaugeView(_context),
-            3 => new CompassGaugeView(_context),
-            _ => null
-        };
+        _windGaugeVM.UpdateWindData((float)data.AWA, (float)data.AWS);
+        _depthGaugeVM.UpdateValue((float)data.DPT);
+        _speedGaugeVM.UpdateSpeedValues((float)data.SOG, (float)data.STW);
+        _compassGaugeVM.UpdateCompassData((float)data.HDG, (float)data.COG);
     }
 
     private class ViewHolder : RecyclerView.ViewHolder

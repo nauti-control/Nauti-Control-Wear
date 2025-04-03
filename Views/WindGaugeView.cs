@@ -3,16 +3,13 @@ using Android.Graphics;
 using Android.Util;
 using Android.Views;
 using Path = Android.Graphics.Path;
+using Nauti_Control_Wear.ViewModels;
 
 namespace Nauti_Control_Wear.Views
 {
     public class WindGaugeView : BaseGaugeView
     {
         private readonly Paint _windPaint = new Paint(PaintFlags.AntiAlias);
-        private float _windAngle = 0f;
-        private float _windSpeed = 0f;
-        private const float MAX_WIND_SPEED = 50f;
-        private const float MIN_WIND_SPEED = 0f;
         private const float ARROW_LENGTH = 0.8f;
         private const float ARROW_HEAD_LENGTH = 0.2f;
         private const float ARROW_HEAD_ANGLE = 30f;
@@ -21,19 +18,35 @@ namespace Nauti_Control_Wear.Views
         private const float ANGLE_MARKER_LENGTH = 0.1f;
         private const float ANGLE_MARKER_STROKE_WIDTH = 2f;
         
-        // Close-hauled angle range (typically 30-45 degrees depending on boat type)
-        private const float CLOSE_HAULED_ANGLE = 40f;
-        
         // Colors for port and starboard tack indicators
         private readonly Color _portColor = Color.ParseColor("#FF0000");      // Red (left side, 320-0)
         private readonly Color _starboardColor = Color.ParseColor("#00FF00");  // Green (right side, 0-40)
 
-        public WindGaugeView(Context context) : base(context)
+        private readonly WindGaugeViewModel _viewModel;
+
+        public WindGaugeView(Context context, WindGaugeViewModel viewModel) : base(context)
         {
+            _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
+            _viewModel.PropertyChanged += ViewModel_PropertyChanged;
         }
 
-        public WindGaugeView(Context context, IAttributeSet attrs) : base(context, attrs)
+        public WindGaugeView(Context context, IAttributeSet attrs, WindGaugeViewModel viewModel) : base(context, attrs)
         {
+            _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
+            _viewModel.PropertyChanged += ViewModel_PropertyChanged;
+        }
+
+        private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(WindGaugeViewModel.CurrentValue) ||
+                e.PropertyName == nameof(WindGaugeViewModel.MaxValue) ||
+                e.PropertyName == nameof(WindGaugeViewModel.Unit) ||
+                e.PropertyName == nameof(WindGaugeViewModel.Label) ||
+                e.PropertyName == nameof(WindGaugeViewModel.WindAngle) ||
+                e.PropertyName == nameof(WindGaugeViewModel.WindSpeed))
+            {
+                Invalidate();
+            }
         }
 
         protected override void Initialize()
@@ -41,20 +54,6 @@ namespace Nauti_Control_Wear.Views
             base.Initialize();
             _windPaint.TextSize = WIND_TEXT_SIZE;
             _windPaint.TextAlign = Paint.Align.Center;
-            _maxValue = MAX_WIND_SPEED;
-            _unit = "kts";
-            _label = "Wind";
-        }
-
-        public void UpdateWindData(float angle, float speed)
-        {
-            // Normalize angle to 0-360 range
-            _windAngle = angle;
-            while (_windAngle < 0) _windAngle += 360;
-            while (_windAngle >= 360) _windAngle -= 360;
-            
-            _windSpeed = speed;
-            UpdateValue(speed);
         }
 
         protected override void OnDraw(Canvas canvas)
@@ -81,17 +80,13 @@ namespace Nauti_Control_Wear.Views
             RectF rectF = new RectF(centerX - radius, centerY - radius, centerX + radius, centerY + radius);
             
             // Port side (left, 320 to 0 degrees)
-            // Note: DrawArc measures angles clockwise from 3 o'clock
-            // 320 degrees is -130 degrees from 3 o'clock (90° - 320° = -230°)
-            canvas.DrawArc(rectF, -130, CLOSE_HAULED_ANGLE, true, _windPaint);
+            canvas.DrawArc(rectF, -130, 40, true, _windPaint);
             
             // Starboard tack close-hauled sector (green, right side)
             _windPaint.Color = _starboardColor;
             
             // Starboard side (right, 0 to 40 degrees)
-            // Note: DrawArc measures angles clockwise from 3 o'clock
-            // 0 degrees is -90 degrees from 3 o'clock
-            canvas.DrawArc(rectF, -90, CLOSE_HAULED_ANGLE, true, _windPaint);
+            canvas.DrawArc(rectF, -90, 40, true, _windPaint);
             
             // Reset alpha
             _windPaint.Alpha = 255;
@@ -100,37 +95,34 @@ namespace Nauti_Control_Wear.Views
         private void DrawWindArrow(Canvas canvas, float centerX, float centerY, float radius)
         {
             // Determine arrow color based on wind angle
-            if (_windAngle > 320 || _windAngle < 0)
+            if (_viewModel.IsPortTack)
             {
-                _windPaint.Color = _portColor; // Port tack (red, left side)
+                _windPaint.Color = _portColor;
             }
-            else if (_windAngle > 0 && _windAngle < 40)
+            else if (_viewModel.IsStarboardTack)
             {
-                _windPaint.Color = _starboardColor; // Starboard tack (green, right side)
+                _windPaint.Color = _starboardColor;
             }
             else
             {
-                _windPaint.Color = Color.White; // Not close-hauled
+                _windPaint.Color = Color.White;
             }
             
             _windPaint.StrokeWidth = WIND_GAUGE_STROKE_WIDTH;
             _windPaint.SetStyle(Paint.Style.Stroke);
 
             using var path = new Path();
-            float angle = _windAngle; // No need to adjust as 0 is at top
+            float angle = _viewModel.WindAngle;
             float arrowLength = radius * ARROW_LENGTH;
             float headLength = radius * ARROW_HEAD_LENGTH;
 
-            // Calculate arrow points
             float radians = angle * (float)Math.PI / 180f;
-            float endX = centerX + arrowLength * (float)Math.Sin(radians); // Use sin for x to get 0 at top
-            float endY = centerY - arrowLength * (float)Math.Cos(radians); // Use -cos for y to get 0 at top
+            float endX = centerX + arrowLength * (float)Math.Sin(radians);
+            float endY = centerY - arrowLength * (float)Math.Cos(radians);
 
-            // Draw arrow shaft
             path.MoveTo(centerX, centerY);
             path.LineTo(endX, endY);
 
-            // Calculate and draw arrow head
             float headAngle1 = (angle + ARROW_HEAD_ANGLE) * (float)Math.PI / 180f;
             float headAngle2 = (angle - ARROW_HEAD_ANGLE) * (float)Math.PI / 180f;
 
@@ -154,13 +146,11 @@ namespace Nauti_Control_Wear.Views
             _windPaint.SetStyle(Paint.Style.Stroke);
             _windPaint.TextSize = WIND_TEXT_SIZE * 0.6f;
 
-            // Draw markers every 30 degrees
             for (int angle = 0; angle < 360; angle += 30)
             {
                 float radians = angle * (float)Math.PI / 180f;
                 float markerLength = radius * ANGLE_MARKER_LENGTH;
                 
-                // Draw marker line
                 float startX = centerX + (radius - markerLength) * (float)Math.Sin(radians);
                 float startY = centerY - (radius - markerLength) * (float)Math.Cos(radians);
                 float endX = centerX + radius * (float)Math.Sin(radians);
@@ -168,7 +158,6 @@ namespace Nauti_Control_Wear.Views
                 
                 canvas.DrawLine(startX, startY, endX, endY, _windPaint);
 
-                // Draw angle text
                 float textX = centerX + (radius + 20) * (float)Math.Sin(radians);
                 float textY = centerY - (radius + 20) * (float)Math.Cos(radians) + WIND_TEXT_SIZE * 0.3f;
                 canvas.DrawText($"{angle}°", textX, textY, _windPaint);
@@ -177,19 +166,16 @@ namespace Nauti_Control_Wear.Views
 
         private void DrawWindSpeed(Canvas canvas, float centerX, float centerY)
         {
-            // Calculate text sizes and positions first
             _windPaint.TextSize = WIND_TEXT_SIZE * 3.75f;
-            float speedWidth = _windPaint.MeasureText($"{_windSpeed:F1}");
+            float speedWidth = _windPaint.MeasureText($"{_viewModel.WindSpeed:F1}");
             _windPaint.TextSize = WIND_TEXT_SIZE * 1.8f;
-            float unitWidth = _windPaint.MeasureText("kts");
+            float unitWidth = _windPaint.MeasureText(_viewModel.Unit);
             
-            // Calculate box dimensions with padding
             float padding = WIND_TEXT_SIZE * 0.75f;
             float boxWidth = Math.Max(speedWidth, unitWidth) + padding * 2;
             float boxHeight = WIND_TEXT_SIZE * 6.0f + padding * 2;
             
-            // Draw semi-transparent background box
-            _windPaint.Color = Color.ParseColor("#80000000"); // Black with 50% alpha
+            _windPaint.Color = Color.ParseColor("#80000000");
             _windPaint.SetStyle(Paint.Style.Fill);
             RectF boxRect = new RectF(
                 centerX - boxWidth / 2,
@@ -199,14 +185,21 @@ namespace Nauti_Control_Wear.Views
             );
             canvas.DrawRoundRect(boxRect, WIND_TEXT_SIZE * 0.75f, WIND_TEXT_SIZE * 0.75f, _windPaint);
             
-            // Draw wind speed text
             _windPaint.Color = Color.White;
             _windPaint.TextSize = WIND_TEXT_SIZE * 3.75f;
-            canvas.DrawText($"{_windSpeed:F1}", centerX, centerY, _windPaint);
+            canvas.DrawText($"{_viewModel.WindSpeed:F1}", centerX, centerY, _windPaint);
             
-            // Draw unit text
             _windPaint.TextSize = WIND_TEXT_SIZE * 1.8f;
-            canvas.DrawText("kts", centerX, centerY + WIND_TEXT_SIZE * 3.0f, _windPaint);
+            canvas.DrawText(_viewModel.Unit, centerX, centerY + WIND_TEXT_SIZE * 3.0f, _windPaint);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _viewModel.PropertyChanged -= ViewModel_PropertyChanged;
+            }
+            base.Dispose(disposing);
         }
     }
 } 

@@ -7,6 +7,7 @@ using AndroidX.Wear.Widget;
 using Nauti_Control_Wear;
 using Nauti_Control_Wear.Views;
 using Nauti_Control_Wear.ViewModels;
+using Nauti_Control_Wear.Models;
 
 namespace Nauti_Control_Wear.Adapters;
 
@@ -15,9 +16,21 @@ public class CombinedPagerAdapter : RecyclerView.Adapter
     private readonly CombinedControlActivity _activity;
     private const int PAGE_COUNT = 5; // Command view + 4 gauges
 
+    // View models for each gauge
+    private readonly WindGaugeViewModel _windGaugeVM;
+    private readonly DepthGaugeViewModel _depthGaugeVM;
+    private readonly SpeedGaugeViewModel _speedGaugeVM;
+    private readonly CompassGaugeViewModel _compassGaugeVM;
+
     public CombinedPagerAdapter(CombinedControlActivity activity)
     {
         _activity = activity ?? throw new ArgumentNullException(nameof(activity));
+        
+        // Initialize view models
+        _windGaugeVM = new WindGaugeViewModel();
+        _depthGaugeVM = new DepthGaugeViewModel();
+        _speedGaugeVM = new SpeedGaugeViewModel();
+        _compassGaugeVM = new CompassGaugeViewModel();
     }
 
     public override int ItemCount => PAGE_COUNT;
@@ -34,16 +47,16 @@ public class CombinedPagerAdapter : RecyclerView.Adapter
                 view = inflater.Inflate(Resource.Layout.command_content, parent, false) ?? throw new InvalidOperationException("Failed to inflate command_content");
                 break;
             case 1: // Wind gauge
-                view = new WindGaugeView(_activity);
+                view = new WindGaugeView(context, _windGaugeVM);
                 break;
             case 2: // Depth gauge
-                view = new DepthGaugeView(_activity);
+                view = new DepthGaugeView(context, _depthGaugeVM);
                 break;
             case 3: // Speed gauge
-                view = new SpeedGaugeView(_activity);
+                view = new SpeedGaugeView(context, _speedGaugeVM);
                 break;
             case 4: // Compass gauge
-                view = new CompassGaugeView(_activity);
+                view = new CompassGaugeView(context, _compassGaugeVM);
                 break;
             default:
                 throw new ArgumentException($"Invalid view type: {viewType}");
@@ -91,6 +104,14 @@ public class CombinedPagerAdapter : RecyclerView.Adapter
     {
         var inflater = LayoutInflater.From(_activity) ?? throw new InvalidOperationException("Could not get LayoutInflater");
         return inflater.Inflate(Resource.Layout.command_content, null);
+    }
+
+    public void UpdateGaugeData(BoatData data)
+    {
+        _windGaugeVM.UpdateWindData((float)data.AWA, (float)data.AWS);
+        _depthGaugeVM.UpdateValue((float)data.DPT);
+        _speedGaugeVM.UpdateSpeedValues((float)data.SOG, (float)data.STW);
+        _compassGaugeVM.UpdateCompassData((float)data.HDG, (float)data.COG);
     }
 
     private class ViewHolder : RecyclerView.ViewHolder

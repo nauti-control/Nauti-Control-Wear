@@ -36,33 +36,7 @@ public class CombinedControlActivity : Activity, IDataDisplayVC
     {
         RunOnUiThread(() =>
         {
-            if (_pagerAdapter != null)
-            {
-                // Wind gauge (position 1)
-                if (_viewPager?.GetChildAt(1) is WindGaugeView windGauge)
-                {
-                    windGauge.UpdateWindData((float)data.AWA, (float)data.AWS);
-                }
-                
-                // Depth gauge (position 2)
-                if (_viewPager?.GetChildAt(2) is DepthGaugeView depthGauge)
-                {
-                    depthGauge.UpdateValue((float)data.DPT);
-                }
-                
-                // Speed gauge (position 3)
-                if (_viewPager?.GetChildAt(3) is SpeedGaugeView speedGauge)
-                {
-                    speedGauge.UpdateSpeedValues((float)data.SOG, (float)data.STW);
-                }
-                
-                // Compass gauge (position 4)
-                if (_viewPager?.GetChildAt(4) is CompassGaugeView compassGauge)
-                {
-                    // Update with heading and course over ground
-                    compassGauge.UpdateCompassData((float)data.HDG, (float)data.COG);
-                }
-            }
+            _pagerAdapter?.UpdateGaugeData(data);
         });
     }
 

@@ -3,7 +3,7 @@ using Android.Graphics;
 using Android.Util;
 using Android.Views;
 using Path = Android.Graphics.Path;
-using System;
+using Nauti_Control_Wear.ViewModels;
 
 namespace Nauti_Control_Wear.Views
 {
@@ -11,14 +11,11 @@ namespace Nauti_Control_Wear.Views
     {
         private readonly Paint _compassPaint = new Paint(PaintFlags.AntiAlias);
         private readonly Path _shipPath = new Path();
-        private float _heading = 0f;
-        private float _courseOverGround = 0f;
-        private const float MAX_DEGREES = 360f;
-        private const float SHIP_SIZE = 0.08f; // Reduced from 0.15f
+        private const float SHIP_SIZE = 0.08f;
         private const float TICK_LENGTH = 0.1f;
         private const float COMPASS_STROKE_WIDTH = 3f;
         private const float COMPASS_TEXT_SIZE = 18f;
-        private const float SHIP_OFFSET = 0.3f; // Move ship up by 30% of radius
+        private const float SHIP_OFFSET = 0.3f;
 
         // Colors
         private readonly Color _headingColor = Color.Red;
@@ -33,33 +30,39 @@ namespace Nauti_Control_Wear.Views
         private const float BUTTON_SPACING = 20f;
         private RectF _buttonRect = new RectF();
         private bool _isButtonPressed = false;
-        private bool _showHeading = true; // Default to showing heading
-        
-        public CompassGaugeView(Context context) : base(context)
-        {
-        }
 
-        public CompassGaugeView(Context context, IAttributeSet attrs) : base(context, attrs)
-        {
-        }
+        private readonly CompassGaugeViewModel _viewModel;
 
-        protected override void Initialize()
+        public CompassGaugeView(Context context, CompassGaugeViewModel viewModel) : base(context)
         {
-            base.Initialize();
-            _compassPaint.TextSize = COMPASS_TEXT_SIZE;
-            _compassPaint.TextAlign = Paint.Align.Center;
-            _maxValue = MAX_DEGREES;
-            _unit = "°";
-            _label = "Heading";
-            
-            // Initialize ship shape
+            _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
+            _viewModel.PropertyChanged += ViewModel_PropertyChanged;
             CreateShipShape();
+        }
+
+        public CompassGaugeView(Context context, IAttributeSet attrs, CompassGaugeViewModel viewModel) : base(context, attrs)
+        {
+            _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
+            _viewModel.PropertyChanged += ViewModel_PropertyChanged;
+            CreateShipShape();
+        }
+
+        private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(CompassGaugeViewModel.CurrentValue) ||
+                e.PropertyName == nameof(CompassGaugeViewModel.MaxValue) ||
+                e.PropertyName == nameof(CompassGaugeViewModel.Unit) ||
+                e.PropertyName == nameof(CompassGaugeViewModel.Label) ||
+                e.PropertyName == nameof(CompassGaugeViewModel.Heading) ||
+                e.PropertyName == nameof(CompassGaugeViewModel.CourseOverGround))
+            {
+                Invalidate();
+            }
         }
 
         private void CreateShipShape()
         {
             _shipPath.Reset();
-            // Ship shape is defined relative to center point (will be transformed when drawing)
             _shipPath.MoveTo(0, -10);  // Bow
             _shipPath.LineTo(5, 10);   // Starboard stern
             _shipPath.LineTo(0, 5);    // Center stern
@@ -67,18 +70,11 @@ namespace Nauti_Control_Wear.Views
             _shipPath.Close();         // Back to bow
         }
 
-        public void UpdateCompassData(float heading, float cog)
+        protected override void Initialize()
         {
-            _heading = NormalizeAngle(heading);
-            _courseOverGround = NormalizeAngle(cog);
-            UpdateValue(_showHeading ? _heading : _courseOverGround);
-        }
-
-        private float NormalizeAngle(float angle)
-        {
-            while (angle < 0) angle += 360;
-            while (angle >= 360) angle -= 360;
-            return angle;
+            base.Initialize();
+            _compassPaint.TextSize = COMPASS_TEXT_SIZE;
+            _compassPaint.TextAlign = Paint.Align.Center;
         }
 
         protected override void OnDraw(Canvas canvas)
@@ -101,10 +97,8 @@ namespace Nauti_Control_Wear.Views
             _compassPaint.StrokeWidth = COMPASS_STROKE_WIDTH;
             _compassPaint.SetStyle(Paint.Style.Stroke);
             
-            // Draw outer circle
             canvas.DrawCircle(centerX, centerY, radius, _compassPaint);
             
-            // Draw degree ticks
             for (int i = 0; i < 360; i += 5)
             {
                 float tickAngle = i;
@@ -119,7 +113,6 @@ namespace Nauti_Control_Wear.Views
                 
                 canvas.DrawLine(startX, startY, endX, endY, _compassPaint);
                 
-                // Draw degree numbers at 30° intervals
                 if (i % 30 == 0)
                 {
                     _compassPaint.SetStyle(Paint.Style.Fill);
@@ -157,7 +150,6 @@ namespace Nauti_Control_Wear.Views
         {
             canvas.Save();
             
-            // Draw ship icon above center pointing up
             float shipY = centerY - radius * SHIP_OFFSET;
             canvas.Translate(centerX, shipY);
             
@@ -173,19 +165,16 @@ namespace Nauti_Control_Wear.Views
 
         private void DrawValueText(Canvas canvas, float centerX, float centerY)
         {
-            // Calculate text sizes and positions first
             _compassPaint.TextSize = COMPASS_TEXT_SIZE * 3.75f;
-            float valueWidth = _compassPaint.MeasureText($"{_currentValue:F0}");
+            float valueWidth = _compassPaint.MeasureText($"{_viewModel.CurrentValue:F0}");
             _compassPaint.TextSize = COMPASS_TEXT_SIZE * 1.8f;
-            float unitWidth = _compassPaint.MeasureText(_unit);
+            float unitWidth = _compassPaint.MeasureText(_viewModel.Unit);
             
-            // Calculate box dimensions with padding
             float padding = COMPASS_TEXT_SIZE * 0.75f;
             float boxWidth = Math.Max(valueWidth, unitWidth) + padding * 2;
             float boxHeight = COMPASS_TEXT_SIZE * 6.0f + padding * 2;
             
-            // Draw semi-transparent background box
-            _compassPaint.Color = Color.ParseColor("#80000000"); // Black with 50% alpha
+            _compassPaint.Color = Color.ParseColor("#80000000");
             _compassPaint.SetStyle(Paint.Style.Fill);
             RectF boxRect = new RectF(
                 centerX - boxWidth / 2,
@@ -195,27 +184,22 @@ namespace Nauti_Control_Wear.Views
             );
             canvas.DrawRoundRect(boxRect, COMPASS_TEXT_SIZE * 0.75f, COMPASS_TEXT_SIZE * 0.75f, _compassPaint);
             
-            // Draw value text
             _compassPaint.Color = _textColor;
             _compassPaint.TextSize = COMPASS_TEXT_SIZE * 3.75f;
-            canvas.DrawText($"{_currentValue:F0}", centerX, centerY, _compassPaint);
+            canvas.DrawText($"{_viewModel.CurrentValue:F0}", centerX, centerY, _compassPaint);
             
-            // Draw unit text
             _compassPaint.TextSize = COMPASS_TEXT_SIZE * 1.8f;
-            canvas.DrawText(_unit, centerX, centerY + COMPASS_TEXT_SIZE * 3.0f, _compassPaint);
+            canvas.DrawText(_viewModel.Unit, centerX, centerY + COMPASS_TEXT_SIZE * 3.0f, _compassPaint);
         }
 
         private void DrawCompassTypeButton(Canvas canvas, float centerX, float centerY)
         {
-            // Calculate button dimensions based on screen size
             float buttonWidth = Width * BUTTON_WIDTH_RATIO;
             float buttonHeight = Height * BUTTON_HEIGHT_RATIO;
             
-            // Calculate button position (below the text box)
             float buttonX = centerX;
             float buttonY = centerY + COMPASS_TEXT_SIZE * 4.0f + BUTTON_SPACING;
             
-            // Create button rectangle
             _buttonRect = new RectF(
                 buttonX - buttonWidth / 2,
                 buttonY - buttonHeight / 2,
@@ -223,15 +207,13 @@ namespace Nauti_Control_Wear.Views
                 buttonY + buttonHeight / 2
             );
             
-            // Draw button background
             _compassPaint.Color = _isButtonPressed ? Color.ParseColor("#404040") : Color.ParseColor("#808080");
             _compassPaint.SetStyle(Paint.Style.Fill);
             canvas.DrawRoundRect(_buttonRect, BUTTON_PADDING, BUTTON_PADDING, _compassPaint);
             
-            // Draw button text (show alternative compass type)
             _compassPaint.Color = Color.White;
             _compassPaint.TextSize = COMPASS_TEXT_SIZE * 2.0f;
-            string buttonText = _showHeading ? "COG" : "HDG";
+            string buttonText = _viewModel.ShowHeading ? "COG" : "HDG";
             canvas.DrawText(buttonText, buttonX, buttonY + COMPASS_TEXT_SIZE * 0.6f, _compassPaint);
         }
 
@@ -252,14 +234,22 @@ namespace Nauti_Control_Wear.Views
             {
                 if (_isButtonPressed && _buttonRect != null && _buttonRect.Contains(e.GetX(), e.GetY()))
                 {
-                    _showHeading = !_showHeading;
-                    UpdateValue(_showHeading ? _heading : _courseOverGround);
+                    _viewModel.ShowHeading = !_viewModel.ShowHeading;
                 }
                 _isButtonPressed = false;
                 Invalidate();
                 return true;
             }
             return base.OnTouchEvent(e);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _viewModel.PropertyChanged -= ViewModel_PropertyChanged;
+            }
+            base.Dispose(disposing);
         }
     }
 } 

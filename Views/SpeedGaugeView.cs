@@ -4,12 +4,12 @@ using Android.Util;
 using Android.Views;
 using System;
 using Path = Android.Graphics.Path;
+using Nauti_Control_Wear.ViewModels;
 
 namespace Nauti_Control_Wear.Views
 {
     public class SpeedGaugeView : BaseGaugeView
     {
-        private const float MAX_SPEED = 30f; // 30 knots max speed
         private const float ARROW_LENGTH = 0.8f;
         private const float ARROW_HEAD_LENGTH = 0.2f;
         private const float ARROW_HEAD_ANGLE = 30f;
@@ -22,31 +22,37 @@ namespace Nauti_Control_Wear.Views
         private readonly Color _textColor = Color.White;
         private readonly Color _markerColor = Color.White;
         
-        // Speed values
-        private float _speedOverGround = 0f;
-        private float _speedThroughWater = 0f;
-        private bool _showSpeedOverGround = true; // Default to SOG
-        
         // Button properties
-        private const float BUTTON_WIDTH_RATIO = 0.5f; // Half of screen width
-        private const float BUTTON_HEIGHT_RATIO = 0.15f; // 15% of screen height
-        private const float BUTTON_PADDING = 20f; // Increased padding for larger button
-        private const float BUTTON_SPACING = 20f; // Increased spacing from text box
+        private const float BUTTON_WIDTH_RATIO = 0.5f;
+        private const float BUTTON_HEIGHT_RATIO = 0.15f;
+        private const float BUTTON_PADDING = 20f;
+        private const float BUTTON_SPACING = 20f;
         private RectF _buttonRect = new RectF();
         private bool _isButtonPressed = false;
 
-        public SpeedGaugeView(Context context) : base(context)
+        private readonly SpeedGaugeViewModel _viewModel;
+
+        public SpeedGaugeView(Context context, SpeedGaugeViewModel viewModel) : base(context)
         {
-            _maxValue = MAX_SPEED;
-            _unit = "kts";
-            _label = "Speed";
+            _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
+            _viewModel.PropertyChanged += ViewModel_PropertyChanged;
         }
 
-        public SpeedGaugeView(Context context, IAttributeSet attrs) : base(context, attrs)
+        public SpeedGaugeView(Context context, IAttributeSet attrs, SpeedGaugeViewModel viewModel) : base(context, attrs)
         {
-            _maxValue = MAX_SPEED;
-            _unit = "kts";
-            _label = "Speed";
+            _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
+            _viewModel.PropertyChanged += ViewModel_PropertyChanged;
+        }
+
+        private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(SpeedGaugeViewModel.CurrentValue) ||
+                e.PropertyName == nameof(SpeedGaugeViewModel.MaxValue) ||
+                e.PropertyName == nameof(SpeedGaugeViewModel.Unit) ||
+                e.PropertyName == nameof(SpeedGaugeViewModel.Label))
+            {
+                Invalidate();
+            }
         }
 
         protected override void Initialize()
@@ -54,27 +60,6 @@ namespace Nauti_Control_Wear.Views
             base.Initialize();
             _paint.TextSize = SPEED_TEXT_SIZE;
             _paint.TextAlign = Paint.Align.Center;
-        }
-
-        public override void UpdateValue(float value)
-        {
-            if (_showSpeedOverGround)
-            {
-                _speedOverGround = value;
-                base.UpdateValue(value);
-            }
-            else
-            {
-                _speedThroughWater = value;
-                base.UpdateValue(value);
-            }
-        }
-
-        public void UpdateSpeedValues(float sog, float stw)
-        {
-            _speedOverGround = sog;
-            _speedThroughWater = stw;
-            UpdateValue(_showSpeedOverGround ? sog : stw);
         }
 
         protected override void OnDraw(Canvas canvas)
@@ -98,20 +83,17 @@ namespace Nauti_Control_Wear.Views
             _paint.SetStyle(Paint.Style.Stroke);
 
             using var path = new Path();
-            float angle = (_currentValue / _maxValue) * 360f;
+            float angle = (_viewModel.CurrentValue / _viewModel.MaxValue) * 360f;
             float arrowLength = radius * ARROW_LENGTH;
             float headLength = radius * ARROW_HEAD_LENGTH;
 
-            // Calculate arrow points (0° at top)
             float radians = angle * (float)Math.PI / 180f;
             float endX = centerX + arrowLength * (float)Math.Sin(radians);
             float endY = centerY - arrowLength * (float)Math.Cos(radians);
 
-            // Draw arrow shaft
             path.MoveTo(centerX, centerY);
             path.LineTo(endX, endY);
 
-            // Calculate and draw arrow head
             float headAngle1 = (angle + ARROW_HEAD_ANGLE) * (float)Math.PI / 180f;
             float headAngle2 = (angle - ARROW_HEAD_ANGLE) * (float)Math.PI / 180f;
 
@@ -135,14 +117,12 @@ namespace Nauti_Control_Wear.Views
             _paint.SetStyle(Paint.Style.Stroke);
             _paint.TextSize = SPEED_TEXT_SIZE * 0.6f;
 
-            // Draw markers every 5 knots
-            for (int speed = 0; speed <= MAX_SPEED; speed += 5)
+            for (int speed = 0; speed <= _viewModel.MaxValue; speed += 5)
             {
-                float angle = (speed / _maxValue) * 360f;
+                float angle = (speed / _viewModel.MaxValue) * 360f;
                 float radians = angle * (float)Math.PI / 180f;
                 float markerLength = radius * MARKER_LENGTH;
                 
-                // Draw marker line
                 float startX = centerX + (radius - markerLength) * (float)Math.Sin(radians);
                 float startY = centerY - (radius - markerLength) * (float)Math.Cos(radians);
                 float endX = centerX + radius * (float)Math.Sin(radians);
@@ -150,7 +130,6 @@ namespace Nauti_Control_Wear.Views
                 
                 canvas.DrawLine(startX, startY, endX, endY, _paint);
 
-                // Draw speed text
                 float textX = centerX + (radius + 20) * (float)Math.Sin(radians);
                 float textY = centerY - (radius + 20) * (float)Math.Cos(radians) + SPEED_TEXT_SIZE * 0.3f;
                 canvas.DrawText($"{speed}", textX, textY, _paint);
@@ -159,19 +138,16 @@ namespace Nauti_Control_Wear.Views
 
         private void DrawSpeedValue(Canvas canvas, float centerX, float centerY)
         {
-            // Calculate text sizes and positions first
             _paint.TextSize = SPEED_TEXT_SIZE * 3.75f;
-            float speedWidth = _paint.MeasureText($"{_currentValue:F1}");
+            float speedWidth = _paint.MeasureText($"{_viewModel.CurrentValue:F1}");
             _paint.TextSize = SPEED_TEXT_SIZE * 1.8f;
-            float unitWidth = _paint.MeasureText(_unit);
+            float unitWidth = _paint.MeasureText(_viewModel.Unit);
             
-            // Calculate box dimensions with padding
             float padding = SPEED_TEXT_SIZE * 0.75f;
             float boxWidth = Math.Max(speedWidth, unitWidth) + padding * 2;
             float boxHeight = SPEED_TEXT_SIZE * 6.0f + padding * 2;
             
-            // Draw semi-transparent background box
-            _paint.Color = Color.ParseColor("#80000000"); // Black with 50% alpha
+            _paint.Color = Color.ParseColor("#80000000");
             _paint.SetStyle(Paint.Style.Fill);
             RectF boxRect = new RectF(
                 centerX - boxWidth / 2,
@@ -181,27 +157,22 @@ namespace Nauti_Control_Wear.Views
             );
             canvas.DrawRoundRect(boxRect, SPEED_TEXT_SIZE * 0.75f, SPEED_TEXT_SIZE * 0.75f, _paint);
             
-            // Draw speed value text
             _paint.Color = _textColor;
             _paint.TextSize = SPEED_TEXT_SIZE * 3.75f;
-            canvas.DrawText($"{_currentValue:F1}", centerX, centerY, _paint);
+            canvas.DrawText($"{_viewModel.CurrentValue:F1}", centerX, centerY, _paint);
             
-            // Draw unit text
             _paint.TextSize = SPEED_TEXT_SIZE * 1.8f;
-            canvas.DrawText(_unit, centerX, centerY + SPEED_TEXT_SIZE * 3.0f, _paint);
+            canvas.DrawText(_viewModel.Unit, centerX, centerY + SPEED_TEXT_SIZE * 3.0f, _paint);
         }
 
         private void DrawSpeedTypeButton(Canvas canvas, float centerX, float centerY)
         {
-            // Calculate button dimensions based on screen size
             float buttonWidth = Width * BUTTON_WIDTH_RATIO;
             float buttonHeight = Height * BUTTON_HEIGHT_RATIO;
             
-            // Calculate button position (below the text box)
             float buttonX = centerX;
             float buttonY = centerY + SPEED_TEXT_SIZE * 4.0f + BUTTON_SPACING;
             
-            // Create button rectangle
             _buttonRect = new RectF(
                 buttonX - buttonWidth / 2,
                 buttonY - buttonHeight / 2,
@@ -209,16 +180,14 @@ namespace Nauti_Control_Wear.Views
                 buttonY + buttonHeight / 2
             );
             
-            // Draw button background
             _paint.Color = _isButtonPressed ? Color.ParseColor("#404040") : Color.ParseColor("#808080");
             _paint.SetStyle(Paint.Style.Fill);
             canvas.DrawRoundRect(_buttonRect, BUTTON_PADDING, BUTTON_PADDING, _paint);
             
-            // Draw button text (show alternative speed type)
             _paint.Color = Color.White;
-            _paint.TextSize = SPEED_TEXT_SIZE * 2.0f; // Much larger text
-            string buttonText = _showSpeedOverGround ? "STW" : "SOG";
-            canvas.DrawText(buttonText, buttonX, buttonY + SPEED_TEXT_SIZE * 0.6f, _paint); // Adjusted vertical offset
+            _paint.TextSize = SPEED_TEXT_SIZE * 2.0f;
+            string buttonText = _viewModel.ShowSpeedOverGround ? "STW" : "SOG";
+            canvas.DrawText(buttonText, buttonX, buttonY + SPEED_TEXT_SIZE * 0.6f, _paint);
         }
 
         public override bool OnTouchEvent(MotionEvent? e)
@@ -238,14 +207,22 @@ namespace Nauti_Control_Wear.Views
             {
                 if (_isButtonPressed && _buttonRect != null && _buttonRect.Contains(e.GetX(), e.GetY()))
                 {
-                    _showSpeedOverGround = !_showSpeedOverGround;
-                    UpdateValue(_showSpeedOverGround ? _speedOverGround : _speedThroughWater);
+                    _viewModel.ShowSpeedOverGround = !_viewModel.ShowSpeedOverGround;
                 }
                 _isButtonPressed = false;
                 Invalidate();
                 return true;
             }
             return base.OnTouchEvent(e);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _viewModel.PropertyChanged -= ViewModel_PropertyChanged;
+            }
+            base.Dispose(disposing);
         }
     }
 } 
