@@ -23,7 +23,7 @@ namespace Nauti_Control_Wear.Views
         protected const float BUTTON_SPACING = 20f;
         protected const float BUTTON_PRESSED_ALPHA = 0.7f;
         protected const float BUTTON_NORMAL_ALPHA = 1.0f;
-        protected const float BUTTON_CORNER_RADIUS = 15f;
+        protected const float BUTTON_CORNER_RADIUS = 25f;
         protected const float BUTTON_TEXT_SIZE_MULTIPLIER = 2.0f;
         protected const float BUTTON_TEXT_Y_OFFSET = 0.6f;
         
@@ -96,7 +96,7 @@ namespace Nauti_Control_Wear.Views
             );
             
             // Draw button background with alpha
-            _paint.Color = Color.ParseColor("#808080");
+            _paint.Color = Color.ParseColor("#4CAF50");
             _paint.Alpha = (int)(255 * _buttonAlpha);
             _paint.SetStyle(Paint.Style.Fill);
             canvas.DrawRoundRect(_buttonRect, BUTTON_CORNER_RADIUS, BUTTON_CORNER_RADIUS, _paint);

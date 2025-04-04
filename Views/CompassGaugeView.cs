@@ -14,7 +14,7 @@ namespace Nauti_Control_Wear.Views
         private const float SHIP_SIZE = 0.08f;
         private const float TICK_LENGTH = 0.1f;
         private const float COMPASS_STROKE_WIDTH = 3f;
-        private const float COMPASS_TEXT_SIZE = 18f;
+        private const float COMPASS_TEXT_SIZE = 20f;
         private const float SHIP_OFFSET = 0.3f;
 
         // Colors
@@ -182,6 +182,34 @@ namespace Nauti_Control_Wear.Views
             
             _compassPaint.TextSize = COMPASS_TEXT_SIZE * 1.8f;
             canvas.DrawText(_viewModel.Unit, centerX, centerY + COMPASS_TEXT_SIZE * 3.0f, _compassPaint);
+        }
+
+        public override bool OnTouchEvent(MotionEvent? e)
+        {
+            if (e == null) return false;
+            
+            if (e.Action == MotionEventActions.Down)
+            {
+                if (_buttonRect != null && _buttonRect.Contains(e.GetX(), e.GetY()))
+                {
+                    _isButtonPressed = true;
+                    _buttonAlpha = BUTTON_PRESSED_ALPHA;
+                    Invalidate();
+                    return true;
+                }
+            }
+            else if (e.Action == MotionEventActions.Up)
+            {
+                if (_isButtonPressed && _buttonRect != null && _buttonRect.Contains(e.GetX(), e.GetY()))
+                {
+                    _viewModel.ShowHeading = !_viewModel.ShowHeading;
+                }
+                _isButtonPressed = false;
+                _buttonAlpha = BUTTON_NORMAL_ALPHA;
+                Invalidate();
+                return true;
+            }
+            return base.OnTouchEvent(e);
         }
 
         protected override void Dispose(bool disposing)

@@ -157,30 +157,6 @@ namespace Nauti_Control_Wear.Views
             canvas.DrawText(_viewModel.Unit, centerX, centerY + SPEED_TEXT_SIZE * 3.0f, _paint);
         }
 
-        protected override void DrawModeButton(Canvas canvas, float centerX, float centerY, float textSize, string buttonText)
-        {
-            float buttonWidth = Width * BUTTON_WIDTH_RATIO;
-            float buttonHeight = Height * BUTTON_HEIGHT_RATIO;
-            
-            float buttonX = centerX;
-            float buttonY = centerY + textSize * 4.0f + BUTTON_SPACING;
-            
-            _buttonRect = new RectF(
-                buttonX - buttonWidth / 2,
-                buttonY - buttonHeight / 2,
-                buttonX + buttonWidth / 2,
-                buttonY + buttonHeight / 2
-            );
-            
-            _paint.Color = Color.Argb((byte)(_buttonAlpha * 255), 0, 0, 0);
-            _paint.SetStyle(Paint.Style.Fill);
-            canvas.DrawRoundRect(_buttonRect, BUTTON_PADDING, BUTTON_PADDING, _paint);
-            
-            _paint.Color = Color.White;
-            _paint.TextSize = textSize * 2.0f;
-            canvas.DrawText(buttonText, buttonX, buttonY + textSize * 0.6f, _paint);
-        }
-
         public override bool OnTouchEvent(MotionEvent? e)
         {
             if (e == null) return false;
