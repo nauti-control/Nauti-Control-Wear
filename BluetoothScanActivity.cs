@@ -47,10 +47,6 @@ public class BluetoothScanActivity : Activity
     /// </summary>
     private BluetoothDeviceAdapter? _btAdapter;
     /// <summary>
-    /// Animation View
-    /// </summary>
-    private ImageView? _animationView;
-    /// <summary>
     /// Device RecyclerView
     /// </summary>
     private WearableRecyclerView? _deviceList;
@@ -121,7 +117,6 @@ public class BluetoothScanActivity : Activity
                 return;
             }
 
-            _animationView = FindViewById<ImageView>(Resource.Id.scan_animation);
             _connectionOverlay = FindViewById<FrameLayout>(Resource.Id.connection_overlay);
             _connectionText = FindViewById<TextView>(Resource.Id.connection_text);
 
@@ -168,25 +163,20 @@ public class BluetoothScanActivity : Activity
                 {
                     _scanButton.Text = "Stop";
                     
-                    // Show spinning animation in header
-                    if (_animationView != null)
+                    // Use the spinner animation directly on the button
+                    _scanButton.SetCompoundDrawablesWithIntrinsicBounds(Resource.Drawable.spinner_animation, 0, 0, 0);
+                    var buttonDrawable = _scanButton.GetCompoundDrawables()[0];
+                    if (buttonDrawable is IAnimatable animation)
                     {
-                        _animationView.SetImageResource(Resource.Drawable.spinner_animation);
-                        var animation = _animationView.Drawable as IAnimatable;
-                        animation?.Start();
+                        animation.Start();
                     }
                 }
                 else
                 {
                     _scanButton.Text = "Scan";
                     
-                    // Show static icon in header
-                    if (_animationView != null)
-                    {
-                        _animationView.SetImageResource(Resource.Drawable.bluetooth_icon);
-                        var animation = _animationView.Drawable as IAnimatable;
-                        animation?.Stop();
-                    }
+                    // Show static scan icon on button
+                    _scanButton.SetCompoundDrawablesWithIntrinsicBounds(Resource.Drawable.scan_spinner, 0, 0, 0);
                 }
             }
         });
@@ -697,13 +687,6 @@ public class BluetoothScanActivity : Activity
         if (_scanButton != null)
         {
             _scanButton.Click -= ScanButton_Click;
-        }
-        
-        // Clean up animations
-        if (_animationView != null)
-        {
-            var animation = _animationView.Drawable as IAnimatable;
-            animation?.Stop();
         }
         
         // Dispose adapter
