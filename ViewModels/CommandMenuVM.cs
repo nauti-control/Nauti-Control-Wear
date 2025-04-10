@@ -45,10 +45,11 @@ namespace Nauti_Control_Wear.ViewModels
         /// <summary>
         /// On Item Click
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="item"></param>
-        public void OnItemClick(object sender, CommandItemVM item)
+        /// <param name="sender">The sender object</param>
+        /// <param name="position">The position of the clicked item</param>
+        public void OnItemClick(object? sender, int position)
         {
+            var item = MenuItems[position];
             if (BluetoothDeviceVM.ConnectedInstance != null)
             {
                 BluetoothDeviceVM.ConnectedInstance.SendCommand(item.Command);

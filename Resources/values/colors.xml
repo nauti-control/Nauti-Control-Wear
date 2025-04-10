@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Modern blue color palette for marine theme -->
+    <color name="primaryColor">#0277bd</color>
+    <color name="primaryDarkColor">#004c8c</color>
+    <color name="primaryLightColor">#58a5f0</color>
+    <color name="accentColor">#00acc1</color>
+    <color name="textOnPrimary">#ffffff</color>
+    
+    <!-- Bluetooth device states -->
+    <color name="device_available">#4caf50</color>
+    <color name="device_connecting">#ff9800</color>
+    <color name="device_connected">#2196f3</color>
+    
+    <!-- Status colors -->
+    <color name="success">#4caf50</color>
+    <color name="warning">#ff9800</color>
+    <color name="error">#f44336</color>
+    
+    <!-- Background color for watch face -->
+    <color name="backgroundDark">#121212</color>
+    <color name="backgroundLight">#e0e0e0</color>
+    <color name="surface">#1e1e1e</color>
+    <color name="card">#2d2d2d</color>
+</resources> 

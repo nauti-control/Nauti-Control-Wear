@@ -1,4 +1,5 @@
 ﻿using Android.Views;
+using Android.Widget;
 using AndroidX.RecyclerView.Widget;
 using Nauti_Control_Wear.ViewModels;
 
@@ -6,34 +7,39 @@ namespace Nauti_Control_Wear.Adapters
 {
     public class CommandViewHolder : RecyclerView.ViewHolder
     {
-        public TextView MenuItem { get; private set; }
+        private readonly TextView _menuItem;
+        private CommandItemVM _menuItemVM = null!;
 
-        private CommandItemVM _menuItemVM;
         public CommandItemVM MenuItemVM
         {
-            get
-            {
-                return _menuItemVM;
-            }
-
+            get => _menuItemVM;
             set
             {
-                MenuItem.Text = value.MenuText;
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
                 _menuItemVM = value;
+                _menuItem.Text = value.MenuText;
             }
         }
 
-
-        public CommandViewHolder(View itemView,Action<int> listener) : base(itemView)
+        public CommandViewHolder(View itemView, Action<int> listener) : base(itemView ?? throw new ArgumentNullException(nameof(itemView)))
         {
+            if (listener == null)
+            {
+                throw new ArgumentNullException(nameof(listener));
+            }
 
+            var menuItem = itemView.FindViewById<TextView>(Resource.Id.menu_text);
+            if (menuItem == null)
+            {
+                throw new InvalidOperationException("Could not find menu_text view");
+            }
+            _menuItem = menuItem;
 
-            MenuItem = itemView.FindViewById<TextView>(_Microsoft.Android.Resource.Designer.ResourceConstant.Id.menu_text);
-            itemView.Click += (sender, e) => listener(base.LayoutPosition);
-
+            itemView.Click += (sender, e) => listener(LayoutPosition);
         }
-
-
     }
 }
 

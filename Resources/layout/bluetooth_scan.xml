@@ -1,43 +1,110 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:paddingTop="10dp"
-    android:paddingBottom="15dp"
-    android:id="@+id/bt_scan"
-    android:orientation="vertical">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/backgroundDark">
 
-
-    <TextView
-        android:id="@+id/idbtlabel"
-        android:layout_gravity="center_horizontal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Bluetooth"
-        android:textAlignment="center"
-        android:textSize="@dimen/abc_text_size_large_material"
-        android:textStyle="bold" />
-
-    <ListView
-     
-        android:id="@+id/idbtdevice"
+    <!-- Header with title and animation -->
+    <LinearLayout
+        android:id="@+id/header_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:layout_marginHorizontal="20dp"        
-         />
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="4dp"
+        android:background="@color/backgroundDark"
+        app:layout_constraintTop_toTopOf="parent">
 
+        <TextView
+            android:id="@+id/idbtlabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nauti Devices"
+            android:textSize="16sp"
+            style="@style/TitleText" />
+    </LinearLayout>
 
+    <!-- Device list takes up the middle space -->
+    <androidx.wear.widget.WearableRecyclerView
+        android:id="@+id/idbtdevice"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:scrollbars="vertical"
+        android:fadingEdge="vertical"
+        android:fadingEdgeLength="8dp"
+        android:clipToPadding="false"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="4dp"
+        app:layout_constraintTop_toBottomOf="@id/header_layout"
+        app:layout_constraintBottom_toTopOf="@id/idbtstartscan" />
+
+    <!-- Scan button at bottom -->
     <Button
         android:id="@+id/idbtstartscan"
-        android:text="Start Scan"
-        android:textSize="@dimen/abc_text_size_medium_material"
-        android:minHeight="0dp"
- 
-        android:layout_gravity="center_horizontal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_width="0dp"
+        android:layout_height="36dp"
+        android:text="Scan"
+        android:textSize="14sp"
+        android:drawableStart="@drawable/scan_spinner"
+        android:drawablePadding="4dp"
+        android:layout_margin="8dp"
+        style="@style/ScanButton"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintWidth_percent="0.5" />
 
+    <!-- Connection overlay (initially invisible) -->
+    <FrameLayout
+        android:id="@+id/connection_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#AA000000"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
 
-</LinearLayout>
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@drawable/rounded_background"
+            android:elevation="8dp"
+            android:padding="8dp"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="16dp">
+
+                <ProgressBar
+                    android:id="@+id/connection_progress"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:indeterminate="true" />
+
+                <TextView
+                    android:id="@+id/connection_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Connecting..."
+                    android:textSize="14sp"
+                    android:textColor="@android:color/white"
+                    android:layout_marginTop="12dp"
+                    android:textAlignment="center" />
+
+            </LinearLayout>
+        </FrameLayout>
+    </FrameLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,39 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/bt_item"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:paddingBottom="5dp"
-    android:paddingTop="5dp"
-    >
-
-    <ImageView
-        android:id="@+id/bt_icon"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_centerVertical="true"
-        android:contentDescription=""
-        android:drawableTint="#ff0000"
-        android:src="@drawable/btdevice"
-        android:paddingRight="5dp"
-       />
-
-    <TextView
-        android:id="@+id/bt_text"
-        android:layout_width="wrap_content"
+    android:padding="2dp">
+    
+    <LinearLayout
+        android:id="@+id/bt_item"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
-        android:layout_toEndOf="@+id/bt_icon"
-        android:layout_toRightOf="@+id/bt_icon"
-        android:textSize="@dimen/abc_text_size_small_material"
-        android:text="Menu Item"
-      
-        />
-</LinearLayout>
+        android:orientation="horizontal"
+        android:padding="6dp"
+        android:gravity="center_vertical"
+        android:background="@drawable/device_card_background">
+
+        <!-- Device icon with signal strength indicator -->
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="6dp">
+            
+            <ImageView
+                android:id="@+id/bt_icon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/bluetooth_icon"
+                android:tint="@color/primaryColor" />
+                
+            <ImageView
+                android:id="@+id/bt_signal"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:src="@drawable/scan_spinner"
+                android:layout_gravity="bottom|end"
+                android:tint="@color/device_available" />
+        </FrameLayout>
+
+        <!-- Device information -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            
+            <TextView
+                android:id="@+id/bt_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Device Name"
+                android:maxLines="1"
+                android:textSize="12sp"
+                android:ellipsize="end"
+                style="@style/DeviceText" />
+                
+            <TextView
+                android:id="@+id/bt_address"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="MAC Address"
+                android:maxLines="1"
+                android:textSize="10sp"
+                style="@style/SubtitleText" />
+        </LinearLayout>
+        
+        <!-- Connection status indicator -->
+        <ImageView
+            android:id="@+id/bt_status"
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:src="@android:drawable/presence_online"
+            android:tint="@color/device_available"
+            android:layout_marginStart="4dp"
+            android:contentDescription="Device Status" />
+    </LinearLayout>
+</FrameLayout>
    

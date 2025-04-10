@@ -1,10 +1,9 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Nauti_Control_Wear.ViewModels
 {
-    public class CommandActivityVM
+    public class CommandActivityVM : IDisposable
     {
         /// <summary>
         /// Command Menu VM
@@ -19,13 +18,14 @@ namespace Nauti_Control_Wear.ViewModels
         /// </summary>
         public CommandActivityVM()
         {
-            BluetoothManagerVM = new BluetoothManagerVM();
             CommandMenuVM = new CommandMenuVM();
-
-
-
+            BluetoothManagerVM = new BluetoothManagerVM();
         }
 
-
+        public void Dispose()
+        {
+            // CommandMenuVM doesn't implement IDisposable
+            BluetoothManagerVM?.Dispose();
+        }
     }
 }
